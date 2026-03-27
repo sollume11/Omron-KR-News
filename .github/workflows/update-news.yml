@@ -33,10 +33,11 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/fetch_news.py
 
-      - name: 🚀 결과 커밋 및 배포
+   - name: 🚀 결과 커밋 및 배포
         run: |
           git config user.name "OMRON News Bot"
           git config user.email "bot@omron-news.local"
           git add docs/index.html docs/index_ja.html
           git diff --staged --quiet || git commit -m "📰 뉴스 업데이트: $(TZ='Asia/Seoul' date '+%Y-%m-%d %H:%M KST')"
+          git pull --rebase origin main
           git push
