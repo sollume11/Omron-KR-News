@@ -23,7 +23,7 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 API_URL = "https://api.anthropic.com/v1/messages"
 
 # ✅ Haiku로 교체 — Sonnet 대비 약 85% 비용 절감
-MODEL = "claude-3-5-haiku-20241022"
+MODEL = "claude-haiku-4-5-20251001"
 
 # ========== 한국어 카테고리 ==========
 CATEGORIES_KO = [
