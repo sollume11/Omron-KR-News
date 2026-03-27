@@ -40,16 +40,19 @@ CATEGORIES = [
 
 SYS_KO = """당신은 전자부품 산업 전문 뉴스 분석가입니다. 오므론전자부품 기술영업팀을 위해 주간 뉴스를 분석합니다.
 검색 결과를 바탕으로 다음 형식의 JSON만 반환하세요:
-{"articles":[{"title":"","summary":"","insight":"","source":"","url":"","date":"","importance":"high|medium|low"}]}
-규칙: JSON만 출력(마크다운 없이), 최대 5개, 한국어, 이번 주 신규 기사 최우선"""
+{"articles":[{"title":"기사제목(반드시한국어)","summary":"요약(반드시한국어)","insight":"인사이트(반드시한국어)","source":"출처명","url":"URL","date":"YYYY-MM-DD","importance":"high|medium|low"}]}
+규칙:
+- JSON만 출력(마크다운 코드블록 없이)
+- 최대 5개 기사
+- title, summary, insight 모두 반드시 한국어로 작성 (영어 제목을 한국어로 번역해서 쓸 것)
+- 이번 주(최근 7일) 신규 기사 최우선, 없으면 최근 1개월 내 주요 뉴스"""
 
-SYS_TRANSLATE = """You are a professional Japanese translator. Translate the Korean news JSON below into Japanese.
-RULES:
-- Keep the exact same JSON structure: {"articles":[{...}]}
-- Translate ONLY: title, summary, insight fields into natural business Japanese
-- Keep UNCHANGED: source, url, date, importance fields
-- Output valid JSON only, no markdown, no explanation
-- Do NOT include any Korean text in the output"""
+SYS_TRANSLATE = """You are a professional Japanese translator.
+Translate the following JSON from Korean to Japanese.
+- Translate ONLY the values of: title, summary, insight
+- Do NOT change: source, url, date, importance
+- Return ONLY valid JSON in exact same structure
+- No markdown, no explanation, no extra text"""
 
 
 def _parse(text, label):
@@ -120,18 +123,44 @@ def fetch_ko(cat, retries=2):
 
 
 def translate_ja(articles, label):
+    """기사 목록을 일본어로 번역. 실패시 개별 번역 시도."""
     if not articles:
         return []
     hdrs = {"Content-Type":"application/json","x-api-key":ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01"}
-    try:
-        r = requests.post(API_URL, headers=hdrs, json={"model":MODEL,"max_tokens":4000,"system":SYS_TRANSLATE,"messages":[{"role":"user","content":json.dumps({"articles":articles},ensure_ascii=False)}]}, timeout=60)
-        r.raise_for_status()
-        t = " ".join(b["text"] for b in r.json().get("content",[]) if b.get("type")=="text")
-        result = _parse(t, label)
-        return result if result else articles
-    except Exception as e:
-        print(f"  ❌ 번역 오류: {e}")
-        return articles
+    
+    def _translate_one(art):
+        payload = json.dumps({
+            "title": art.get("title",""),
+            "summary": art.get("summary",""),
+            "insight": art.get("insight","")
+        }, ensure_ascii=False)
+        try:
+            r = requests.post(API_URL, headers=hdrs, json={
+                "model": MODEL,
+                "max_tokens": 1500,
+                "system": SYS_TRANSLATE,
+                "messages": [{"role":"user","content": payload}]
+            }, timeout=60)
+            r.raise_for_status()
+            t = " ".join(b["text"] for b in r.json().get("content",[]) if b.get("type")=="text")
+            t = t.replace("```json","").replace("```","").strip()
+            translated = json.loads(t)
+            return {**art,
+                "title": translated.get("title", art.get("title","")),
+                "summary": translated.get("summary", art.get("summary","")),
+                "insight": translated.get("insight", art.get("insight",""))}
+        except Exception as e:
+            print(f"    ⚠ 개별 번역 실패: {e}")
+            return art
+    
+    results = []
+    for i, art in enumerate(articles):
+        print(f"    [{i+1}/{len(articles)}] 번역 중...")
+        results.append(_translate_one(art))
+        if i < len(articles)-1:
+            time.sleep(1)
+    print(f"  ✅ {len(results)}개 번역 완료")
+    return results
 
 
 def generate_html(all_news, update_time, lang="ko", other_lang_url=None):
