@@ -4,26 +4,611 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OMRON News Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --bg: #F5F6FA;
+            --surface: #FFFFFF;
+            --text: #1A1A2E;
+            --text-secondary: #6B7280;
+            --text-muted: #9CA3AF;
+            --border: #E5E7EB;
+            --header-bg: linear-gradient(135deg, #0A0F1E 0%, #162040 50%, #1A2744 100%);
+            --omron-blue: #0066CC;
+        }
+        
         body {
-            font-family: -apple-system, sans-serif;
+            font-family: 'Noto Sans KR', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* HEADER */
+        header {
+            background: var(--header-bg);
+            padding: 28px 24px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0,102,204,0.12) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .header-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        .logo-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+        .logo-mark {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0066CC, #00AAFF);
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            background: #0A0F1E;
-            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 17px;
+            color: #fff;
+            letter-spacing: -1px;
+            flex-shrink: 0;
+        }
+        .site-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #FFFFFF;
+            letter-spacing: -0.5px;
+        }
+        .site-subtitle {
+            font-size: 12px;
+            color: rgba(255,255,255,0.45);
+            font-weight: 300;
+            margin-top: 2px;
+        }
+        .stats-row {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20px;
+            font-weight: 600;
+            color: #FFFFFF;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.3;
+        }
+        .update-time {
+            margin-top: 12px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.35);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* NAV TABS */
+        nav {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .tab-scroll {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            gap: 4px;
+            padding: 10px 24px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .tab-scroll::-webkit-scrollbar { height: 0; }
+        .tab {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 16px;
+            border-radius: 8px;
+            border: 1.5px solid transparent;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: 'Noto Sans KR', sans-serif;
+            transition: all 0.2s;
+        }
+        .tab:hover {
+            background: #F3F4F6;
+        }
+        .tab.active {
+            background: color-mix(in srgb, var(--cat-color) 8%, transparent);
+            border-color: var(--cat-color);
+            color: var(--cat-color);
+            font-weight: 600;
+        }
+        .tab-icon { font-size: 17px; }
+        .tab-badge {
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+            border-radius: 10px;
+            padding: 1px 7px;
+            min-width: 18px;
             text-align: center;
         }
-        .msg { max-width: 400px; }
-        h1 { font-size: 24px; margin-bottom: 12px; }
-        p { color: rgba(255,255,255,0.6); font-size: 14px; }
+        
+        /* MAIN */
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        .category-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .category-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .cat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .cat-title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .cat-icon { font-size: 28px; }
+        .cat-title {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .cat-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 3px;
+        }
+        .article-count {
+            font-size: 12px;
+            color: var(--text-muted);
+            background: #F3F4F6;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        
+        /* CARDS */
+        .articles {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px 24px;
+            border-left: 4px solid;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            transition: all 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+        }
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .importance {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+        .date {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111827;
+            line-height: 1.45;
+            margin-bottom: 10px;
+            letter-spacing: -0.3px;
+        }
+        .card-summary {
+            font-size: 13.5px;
+            color: #4B5563;
+            line-height: 1.75;
+            margin-bottom: 14px;
+        }
+        .insight-box {
+            display: flex;
+            gap: 8px;
+            background: #FFFBEB;
+            border: 1px solid #FDE68A;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+        }
+        .insight-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .insight-text {
+            font-size: 12.5px;
+            color: #92400E;
+            line-height: 1.65;
+        }
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 10px;
+            border-top: 1px solid #F3F4F6;
+        }
+        .source {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .source-link {
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        .source-link:hover { opacity: 0.7; }
+        
+        /* EMPTY STATE */
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .empty-icon { font-size: 48px; opacity: 0.3; margin-bottom: 12px; }
+        .empty-title { font-size: 15px; font-weight: 600; color: #374151; }
+        .empty-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+        
+        /* FOOTER */
+        footer {
+            text-align: center;
+            padding: 28px 24px;
+            font-size: 11px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            margin-top: 48px;
+        }
+        
+        /* MOBILE */
+        @media (max-width: 640px) {
+            header { padding: 20px 16px; }
+            .site-title { font-size: 18px; }
+            main { padding: 16px; }
+            .card { padding: 16px; }
+            .cat-title { font-size: 18px; }
+            .tab { padding: 7px 12px; font-size: 12px; }
+        }
     </style>
 </head>
 <body>
-    <div class="msg">
-        <h1>🏢 OMRON News Intelligence</h1>
-        <p>설정이 완료되었습니다.<br>첫 번째 뉴스 업데이트를 기다려주세요.<br>(매일 오전 8시 자동 업데이트)</p>
+
+<header>
+    <div class="header-inner">
+        <div class="logo-row">
+            <div class="logo-mark">ON</div>
+            <div>
+                <h1 class="site-title">OMRON News Intelligence</h1>
+                <p class="site-subtitle">전자부품 영업팀을 위한 산업 뉴스 대시보드</p>
+            </div>
+        </div>
+        <div class="stats-row">
+            <div class="stat">
+                <span class="stat-value">5</span>
+                <span class="stat-label">오늘의<br>기사</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value">3</span>
+                <span class="stat-label">높은<br>중요도</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value">6</span>
+                <span class="stat-label">분석<br>카테고리</span>
+            </div>
+        </div>
+        <p class="update-time">마지막 업데이트: 2026년 03월 27일 17:02 KST</p>
     </div>
+</header>
+
+<nav>
+    <div class="tab-scroll">
+        <button class="tab active" 
+                    data-category="omron" 
+                    onclick="showCategory('omron')"
+                    style="--cat-color: #0066CC">
+                <span class="tab-icon">🏢</span>
+                <span class="tab-label">OMRON 소식</span>
+                
+            </button>
+<button class="tab " 
+                    data-category="hfe" 
+                    onclick="showCategory('hfe')"
+                    style="--cat-color: #7C3AED">
+                <span class="tab-icon">📡</span>
+                <span class="tab-label">HFE</span>
+                
+            </button>
+<button class="tab " 
+                    data-category="dce" 
+                    onclick="showCategory('dce')"
+                    style="--cat-color: #059669">
+                <span class="tab-icon">⚡</span>
+                <span class="tab-label">DCE</span>
+                <span class="tab-badge" style="background:#059669">5</span>
+            </button>
+<button class="tab " 
+                    data-category="appliance" 
+                    onclick="showCategory('appliance')"
+                    style="--cat-color: #DC2626">
+                <span class="tab-icon">🏠</span>
+                <span class="tab-label">가전업계</span>
+                
+            </button>
+<button class="tab " 
+                    data-category="casino" 
+                    onclick="showCategory('casino')"
+                    style="--cat-color: #D97706">
+                <span class="tab-icon">🎰</span>
+                <span class="tab-label">카지노 머신</span>
+                
+            </button>
+<button class="tab " 
+                    data-category="electronics" 
+                    onclick="showCategory('electronics')"
+                    style="--cat-color: #0891B2">
+                <span class="tab-icon">🔌</span>
+                <span class="tab-label">전자산업 동향</span>
+                
+            </button>
+    </div>
+</nav>
+
+<main>
+    <section class="category-section active" id="section-omron">
+            <div class="cat-header">
+                <div>
+                    <div class="cat-title-row">
+                        <span class="cat-icon">🏢</span>
+                        <h2 class="cat-title" style="color:#0066CC">OMRON 소식</h2>
+                    </div>
+                    <p class="cat-desc">오므론 본사 및 글로벌 소식</p>
+                </div>
+                <span class="article-count">0개 기사</span>
+            </div>
+            <div class="articles"><div class="empty">
+                <div class="empty-icon">🏢</div>
+                <p class="empty-title">수집된 뉴스가 없습니다</p>
+                <p class="empty-sub">다음 업데이트를 기다려주세요</p>
+            </div></div>
+        </section>
+<section class="category-section " id="section-hfe">
+            <div class="cat-header">
+                <div>
+                    <div class="cat-title-row">
+                        <span class="cat-icon">📡</span>
+                        <h2 class="cat-title" style="color:#7C3AED">HFE</h2>
+                    </div>
+                    <p class="cat-desc">고주파장비 · 모바일검사 · 반도체장비</p>
+                </div>
+                <span class="article-count">0개 기사</span>
+            </div>
+            <div class="articles"><div class="empty">
+                <div class="empty-icon">📡</div>
+                <p class="empty-title">수집된 뉴스가 없습니다</p>
+                <p class="empty-sub">다음 업데이트를 기다려주세요</p>
+            </div></div>
+        </section>
+<section class="category-section " id="section-dce">
+            <div class="cat-header">
+                <div>
+                    <div class="cat-title-row">
+                        <span class="cat-icon">⚡</span>
+                        <h2 class="cat-title" style="color:#059669">DCE</h2>
+                    </div>
+                    <p class="cat-desc">DC파워 · 배터리 · ESS · 데이터센터</p>
+                </div>
+                <span class="article-count">5개 기사</span>
+            </div>
+            <div class="articles"><article class="card" style="border-left-color: #DC2626">
+                    <div class="card-top">
+                        <span class="importance" style="background:#DC262618;color:#DC2626">중요도: 높음</span>
+                        <span class="date">2026-03-13</span>
+                    </div>
+                    <h3 class="card-title">배터리 3사, '인터배터리 2026'에서 AI·ESS·로봇 중심 전략 전면 공개</h3>
+                    <p class="card-summary"><cite index="1-6,1-17,1-18">LG에너지솔루션, 삼성SDI, SK온이 3월 11-13일 코엑스에서 열린 인터배터리 2026에서 전기차를 넘어 AI 데이터센터, ESS, 로봇으로 사업을 확장하는 전략을 발표했습니다. LG에너지솔루션은 리튬인산철(LFP) 배터리 기반 'JP6' UPS 랙시스템과 원통형 BBU 솔루션을 처음 공개했고</cite>, <cite index="1-19,1-20">삼성SDI는 UPS용 각형 배터리 'U8A1'과 BBU용 원통형 솔루션을, SK온은 ESS용 LFP 파우치 배터리와 컨테이너형 ESS DC 블록을 선보였습니다</cite>. <cite index="1-24">전고체 배터리와 7분 급속충전 등 차세대 기술도 경쟁적으로 공개되었습니다</cite>.</p>
+                    <div class="insight-box">
+                        <span class="insight-icon">💡</span>
+                        <p class="insight-text"><strong>영업 인사이트:</strong> 배터리 3사가 AI 데이터센터와 ESS 시장을 새로운 성장동력으로 삼고 있어, 오므론의 DC파워·ESS 관련 전자부품 수요가 크게 증가할 것으로 예상됩니다. 특히 UPS와 BBU 시스템 구축 과정에서 릴레이, 컨택터, 파워서플라이 등의 기회가 확대될 전망입니다.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="source">📌 디일렉(THE ELEC)</span>
+                        <a href="https://www.thelec.kr/news/articleView.html?idxno=52899" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#059669">원문 보기 →</a>
+                    </div>
+                </article>
+<article class="card" style="border-left-color: #DC2626">
+                    <div class="card-top">
+                        <span class="importance" style="background:#DC262618;color:#DC2626">중요도: 높음</span>
+                        <span class="date">2025-12-18</span>
+                    </div>
+                    <h3 class="card-title">ESS 시장 2026년 신규 입찰제도로 10년간 구조적 변화 가속화</h3>
+                    <p class="card-summary"><cite index="11-3,11-4">정부가 2026년부터 장주기 ESS 중심의 신규 입찰시장 제도를 본격화하여 향후 10년간 에너지저장 시장의 구조적 변화가 가속화될 예정입니다. AI 데이터센터와 산업 전력수요 급증, 재생에너지 출력제어 상시화 등으로 전력 수급의 시간대 불균형 문제가 심화되고 있습니다</cite>. <cite index="11-7">국내는 제11차 전력수급기본계획에 따라 2038년까지 누적 21.5GW 규모의 장주기 ESS 설비 구축을 목표로 하여 발전용·산업용·데이터센터·산업단지 등 전방위적 수요 확대가 예상됩니다</cite>. <cite index="11-5">ESS는 피크 저감과 예비력 확보를 통한 계통 안정화, 재생에너지 수용성 확대, PPA·VPP 기반 시장형 수익모델 창출을 동시에 수행하는 핵심 인프라로 자리매김했습니다</cite>.</p>
+                    <div class="insight-box">
+                        <span class="insight-icon">💡</span>
+                        <p class="insight-text"><strong>영업 인사이트:</strong> ESS 시장의 급속한 성장과 정부 정책 지원은 오므론의 ESS 관련 전자부품 사업에 큰 기회를 제공할 것입니다. 특히 배터리 관리시스템(BMS), 전력변환시스템(PCS), 안전 및 제어 시스템 등에서 릴레이, 센서, 제어기기 수요가 폭발적으로 증가할 전망입니다.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="source">📌 에너지경제</span>
+                        <a href="https://m.ekn.kr/view.php?key=20251218023359627" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#059669">원문 보기 →</a>
+                    </div>
+                </article>
+<article class="card" style="border-left-color: #DC2626">
+                    <div class="card-top">
+                        <span class="importance" style="background:#DC262618;color:#DC2626">중요도: 높음</span>
+                        <span class="date">2026-03-26</span>
+                    </div>
+                    <h3 class="card-title">데이터센터 800V DC 전력시스템 혁신으로 효율성 45% 향상</h3>
+                    <p class="card-summary"><cite index="21-5,21-6">Vertiv의 800V DC 생태계가 2026년 하반기 상용화 예정이며, Eaton도 고체상태변압기(SST) 기반 800V DC 시스템을 개발하고 있습니다</cite>. <cite index="21-7,21-8">Delta는 800V DC 인로우 660kW 전력랙을 출시했고, SolarEdge는 99% 효율의 SST를 DC UPS와 연결한 시스템을 개발 중입니다</cite>. <cite index="21-10">DC 전력 혁신으로 구리 사용량 45% 감소, 비용 30% 절감이 가능해져 AI 인프라의 효율성이 대폭 향상될 것으로 전망됩니다</cite>. <cite index="21-19">복잡하고 비효율적인 AC-DC 전력변환이 점차 DC 구성으로 대체되고 있으며, 적어도 하이퍼스케일 데이터센터에서는 이 추세가 가속화되고 있습니다</cite>.</p>
+                    <div class="insight-box">
+                        <span class="insight-icon">💡</span>
+                        <p class="insight-text"><strong>영업 인사이트:</strong> 데이터센터의 800V DC 전력시스템 전환은 오므론의 고전압 DC 릴레이, 컨택터, 차단기 등 DC파워 제품 수요를 크게 늘릴 것입니다. 특히 고효율·고밀도 전력변환 시스템에서 오므론의 정밀제어 기술이 경쟁력을 발휘할 수 있는 기회가 확대됩니다.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="source">📌 IEEE Spectrum</span>
+                        <a href="https://spectrum.ieee.org/data-center-dc" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#059669">원문 보기 →</a>
+                    </div>
+                </article>
+<article class="card" style="border-left-color: #D97706">
+                    <div class="card-top">
+                        <span class="importance" style="background:#D9770618;color:#D97706">중요도: 보통</span>
+                        <span class="date">2026-01-18</span>
+                    </div>
+                    <h3 class="card-title">AI 데이터센터 전력난으로 사모펀드 자금이 ESS 시장으로 대거 유입</h3>
+                    <p class="card-summary"><cite index="16-5,16-7">AI 데이터센터의 폭발적인 전력 수요를 잡기 위해 글로벌 자본이 ESS 시장으로 몰리고 있으며, 미국 대형 사모펀드 NGP는 에너지 저장 전문기업 리미널 에너지에 2억 달러(약 2600억원)를 투자했습니다</cite>. <cite index="16-1,16-3">노후화된 송배전 인프라와 극단적 기상이변, AI 데이터센터 확산으로 미국 전력망 신뢰성 문제가 심화되어 전력 가격 변동성이 커지고 정전 위험이 높아지고 있습니다</cite>. <cite index="16-4,16-16">데이터센터와 연계된 ESS가 풍력·태양광·원전 등의 잉여 전력을 흡수했다가 수요가 몰리는 시간대에 방전해 전력망을 안정화하고 가격 급등을 완화하는 역할을 하고 있습니다</cite>.</p>
+                    <div class="insight-box">
+                        <span class="insight-icon">💡</span>
+                        <p class="insight-text"><strong>영업 인사이트:</strong> 글로벌 투자자금의 ESS 시장 유입은 관련 전자부품 시장의 급성장을 의미합니다. 오므론은 ESS의 핵심 구성요소인 배터리 관리, 전력변환, 안전제어 시스템에서 고품질 릴레이, 스위치, 센서 등의 수요 증가를 기대할 수 있습니다.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="source">📌 임팩트온</span>
+                        <a href="http://www.impacton.net/news/articleView.html?idxno=17646" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#059669">원문 보기 →</a>
+                    </div>
+                </article>
+<article class="card" style="border-left-color: #D97706">
+                    <div class="card-top">
+                        <span class="importance" style="background:#D9770618;color:#D97706">중요도: 보통</span>
+                        <span class="date"></span>
+                    </div>
+                    <h3 class="card-title">DC전원공급장치 시장 2035년까지 연평균 5.2% 성장하여 10억8500만달러 규모 달성</h3>
+                    <p class="card-summary"><cite index="22-1,22-4">글로벌 DC 전원공급장치 시장이 2026년 7억6500만달러에서 2035년 10억8500만달러로 연평균 5.2% 성장할 것으로 전망됩니다</cite>. <cite index="22-5,22-6">전자제조업, 전기차 테스트, 산업자동화, 실험실 환경에서 2억1400만 개 이상의 전력변환 장비가 설치되어 있으며, 프로그래머블 DC 전원공급장치가 전체 출하량의 46%를 차지합니다. 500W~5kW 출력 범위가 테스트·측정 시스템 수요의 52%를 차지하고, 10kW 이상 고출력 유닛은 배터리 테스트와 재생에너지 시뮬레이션 플랫폼의 31%에서 사용됩니다</cite>. <cite index="22-17">아시아태평양 지역이 전체 시장 점유율의 39%를 차지하며, 글로벌 전자제조업 생산량의 62% 이상을 담당하고 있습니다</cite>.</p>
+                    <div class="insight-box">
+                        <span class="insight-icon">💡</span>
+                        <p class="insight-text"><strong>영업 인사이트:</strong> DC 전원공급장치 시장의 안정적 성장은 오므론의 DC파워 관련 전자부품에 지속적인 수요를 제공할 것입니다. 특히 고정밀도, 고효율 요구사항이 높아짐에 따라 오므론의 첨단 릴레이와 제어기기의 경쟁력이 더욱 부각될 전망입니다.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="source">📌 Market Reports World</span>
+                        <a href="https://www.marketreportsworld.com/market-reports/dc-power-supply-market-14724911" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#059669">원문 보기 →</a>
+                    </div>
+                </article></div>
+        </section>
+<section class="category-section " id="section-appliance">
+            <div class="cat-header">
+                <div>
+                    <div class="cat-title-row">
+                        <span class="cat-icon">🏠</span>
+                        <h2 class="cat-title" style="color:#DC2626">가전업계</h2>
+                    </div>
+                    <p class="cat-desc">LG · 삼성 가전제품 동향</p>
+                </div>
+                <span class="article-count">0개 기사</span>
+            </div>
+            <div class="articles"><div class="empty">
+                <div class="empty-icon">🏠</div>
+                <p class="empty-title">수집된 뉴스가 없습니다</p>
+                <p class="empty-sub">다음 업데이트를 기다려주세요</p>
+            </div></div>
+        </section>
+<section class="category-section " id="section-casino">
+            <div class="cat-header">
+                <div>
+                    <div class="cat-title-row">
+                        <span class="cat-icon">🎰</span>
+                        <h2 class="cat-title" style="color:#D97706">카지노 머신</h2>
+                    </div>
+                    <p class="cat-desc">카지노 머신 · 게이밍 장비</p>
+                </div>
+                <span class="article-count">0개 기사</span>
+            </div>
+            <div class="articles"><div class="empty">
+                <div class="empty-icon">🎰</div>
+                <p class="empty-title">수집된 뉴스가 없습니다</p>
+                <p class="empty-sub">다음 업데이트를 기다려주세요</p>
+            </div></div>
+        </section>
+<section class="category-section " id="section-electronics">
+            <div class="cat-header">
+                <div>
+                    <div class="cat-title-row">
+                        <span class="cat-icon">🔌</span>
+                        <h2 class="cat-title" style="color:#0891B2">전자산업 동향</h2>
+                    </div>
+                    <p class="cat-desc">릴레이 · 스위치 · 커넥터 범용부품 산업</p>
+                </div>
+                <span class="article-count">0개 기사</span>
+            </div>
+            <div class="articles"><div class="empty">
+                <div class="empty-icon">🔌</div>
+                <p class="empty-title">수집된 뉴스가 없습니다</p>
+                <p class="empty-sub">다음 업데이트를 기다려주세요</p>
+            </div></div>
+        </section>
+</main>
+
+<footer>
+    Powered by Claude AI · 오므론전자부품 기술영업팀 전용 · 매일 오전 8시 자동 업데이트
+</footer>
+
+<script>
+function showCategory(id) {
+    document.querySelectorAll('.category-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('section-' + id).classList.add('active');
+    document.querySelector('[data-category="' + id + '"]').classList.add('active');
+}
+</script>
+
 </body>
 </html>
