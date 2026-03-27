@@ -1,772 +1,287 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OMRON News Intelligence</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root {
-            --bg: #F5F6FA;
-            --surface: #FFFFFF;
-            --text: #1A1A2E;
-            --text-secondary: #6B7280;
-            --text-muted: #9CA3AF;
-            --border: #E5E7EB;
-            --header-bg: linear-gradient(135deg, #0A0F1E 0%, #162040 50%, #1A2744 100%);
-            --omron-blue: #0066CC;
-        }
-        body {
-            font-family: 'Noto Sans JP', 'Noto Sans KR', -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-        }
-        header {
-            background: var(--header-bg);
-            padding: 28px 24px 20px;
-            position: relative;
-            overflow: hidden;
-        }
-        header::before {
-            content: '';
-            position: absolute;
-            top: -50%; right: -10%;
-            width: 400px; height: 400px;
-            background: radial-gradient(circle, rgba(0,102,204,0.12) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-        .header-inner {
-            max-width: 1100px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-        }
-        .logo-row {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 16px;
-        }
-        .logo-mark {
-            width: 46px; height: 46px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #0066CC, #00AAFF);
-            display: flex; align-items: center; justify-content: center;
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700; font-size: 17px;
-            color: #fff; letter-spacing: -1px; flex-shrink: 0;
-        }
-        .logo-text { flex: 1; }
-        .site-title {
-            font-size: 22px; font-weight: 800;
-            color: #FFFFFF; letter-spacing: -0.5px;
-        }
-        .site-subtitle {
-            font-size: 12px;
-            color: rgba(255,255,255,0.55);
-            font-weight: 300; margin-top: 2px;
-        }
-        .lang-btn {
-            display: inline-block;
-            padding: 5px 14px;
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 20px;
-            color: rgba(255,255,255,0.8);
-            font-size: 12px;
-            font-weight: 500;
-            text-decoration: none;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        .lang-btn:hover {
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-        }
-        .stats-row {
-            display: flex;
-            gap: 24px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .stat {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .stat-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 20px; font-weight: 600;
-            color: #FFFFFF;
-        }
-        .stat-label {
-            font-size: 11px;
-            color: rgba(255,255,255,0.5);
-            line-height: 1.3;
-        }
-        .update-time {
-            margin-top: 12px;
-            font-size: 11px;
-            color: rgba(255,255,255,0.35);
-            font-family: 'JetBrains Mono', monospace;
-        }
-        nav {
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            position: sticky; top: 0; z-index: 100;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-        }
-        .tab-scroll {
-            max-width: 1100px; margin: 0 auto;
-            display: flex; gap: 4px;
-            padding: 10px 24px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        .tab-scroll::-webkit-scrollbar { height: 0; }
-        .tab {
-            display: flex; align-items: center; gap: 7px;
-            padding: 9px 16px;
-            border-radius: 8px;
-            border: 1.5px solid transparent;
-            background: transparent;
-            color: var(--text-secondary);
-            font-size: 13px; font-weight: 500;
-            cursor: pointer; white-space: nowrap;
-            font-family: inherit;
-            transition: all 0.2s;
-        }
-        .tab:hover { background: #F3F4F6; }
-        .tab.active {
-            background: color-mix(in srgb, var(--cat-color) 8%, transparent);
-            border-color: var(--cat-color);
-            color: var(--cat-color);
-            font-weight: 600;
-        }
-        .tab-icon { font-size: 17px; }
-        .tab-badge {
-            font-size: 10px; font-weight: 700;
-            color: #fff; border-radius: 10px;
-            padding: 1px 7px; min-width: 18px;
-            text-align: center;
-        }
-        main {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 24px;
-        }
-        .category-section { display: none; animation: fadeIn 0.3s ease; }
-        .category-section.active { display: block; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .cat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .cat-title-row {
-            display: flex; align-items: center; gap: 10px;
-        }
-        .cat-icon { font-size: 28px; }
-        .cat-title {
-            font-size: 22px; font-weight: 800;
-            letter-spacing: -0.5px;
-        }
-        .cat-desc {
-            font-size: 13px; color: var(--text-secondary); margin-top: 3px;
-        }
-        .article-count {
-            font-size: 12px; color: var(--text-muted);
-            background: #F3F4F6; padding: 4px 12px;
-            border-radius: 20px; font-weight: 500;
-        }
-        .articles { display: flex; flex-direction: column; gap: 14px; }
-        .card {
-            background: var(--surface);
-            border-radius: 12px;
-            padding: 20px 24px;
-            border-left: 4px solid;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-            transition: all 0.2s;
-        }
-        .card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.07);
-        }
-        .card-top {
-            display: flex; justify-content: space-between;
-            align-items: center; margin-bottom: 10px;
-        }
-        .importance {
-            font-size: 11px; font-weight: 600;
-            padding: 3px 10px; border-radius: 20px;
-        }
-        .date {
-            font-size: 12px; color: var(--text-muted);
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .card-title {
-            font-size: 16px; font-weight: 700;
-            color: #111827; line-height: 1.45;
-            margin-bottom: 10px; letter-spacing: -0.3px;
-        }
-        .card-summary {
-            font-size: 13.5px; color: #4B5563;
-            line-height: 1.75; margin-bottom: 14px;
-        }
-        .insight-box {
-            display: flex; gap: 8px;
-            background: #FFFBEB;
-            border: 1px solid #FDE68A;
-            border-radius: 8px;
-            padding: 12px 14px;
-            margin-bottom: 14px;
-        }
-        .insight-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
-        .insight-text { font-size: 12.5px; color: #92400E; line-height: 1.65; }
-        .card-footer {
-            display: flex; justify-content: space-between;
-            align-items: center;
-            padding-top: 10px;
-            border-top: 1px solid #F3F4F6;
-        }
-        .source { font-size: 12px; color: var(--text-muted); }
-        .source-link {
-            font-size: 12px; font-weight: 600;
-            text-decoration: none; transition: opacity 0.2s;
-        }
-        .source-link:hover { opacity: 0.7; }
-        .empty {
-            text-align: center; padding: 60px 20px;
-        }
-        .empty-icon { font-size: 48px; opacity: 0.3; margin-bottom: 12px; }
-        .empty-title { font-size: 15px; font-weight: 600; color: #374151; }
-        .empty-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
-        footer {
-            text-align: center;
-            padding: 28px 24px;
-            font-size: 11px;
-            color: var(--text-muted);
-            border-top: 1px solid var(--border);
-            margin-top: 48px;
-        }
-        @media (max-width: 640px) {
-            header { padding: 20px 16px; }
-            .site-title { font-size: 18px; }
-            main { padding: 16px; }
-            .card { padding: 16px; }
-            .cat-title { font-size: 18px; }
-            .tab { padding: 7px 12px; font-size: 12px; }
-        }
-    </style>
-</head>
-<body>
-
-<header>
-    <div class="header-inner">
-        <div class="logo-row">
-            <div class="logo-mark">ON</div>
-            <div class="logo-text">
-                <h1 class="site-title">OMRON News Intelligence</h1>
-                <p class="site-subtitle">オムロン電子部品 社員の皆様のための産業ニュースダッシュボード</p>
-            </div>
-            <a href="index.html" class="lang-btn">한국어</a>
-        </div>
-        <div class="stats-row">
-            <div class="stat">
-                <span class="stat-value">20</span>
-                <span class="stat-label">本日の記事</span>
-            </div>
-            <div class="stat">
-                <span class="stat-value">15</span>
-                <span class="stat-label">重要度: 高</span>
-            </div>
-            <div class="stat">
-                <span class="stat-value">6</span>
-                <span class="stat-label">カテゴリ数</span>
-            </div>
-        </div>
-        <p class="update-time">週間更新: 2026年03月27日 18:30 KST</p>
-    </div>
-</header>
-
-<nav>
-    <div class="tab-scroll">
-        <button class="tab active"
-                    data-category="omron"
-                    onclick="showCategory('omron')"
-                    style="--cat-color: #0066CC">
-                <span class="tab-icon">🏢</span>
-                <span class="tab-label">オムロン情報</span>
-                
-            </button>
-<button class="tab "
-                    data-category="hfe"
-                    onclick="showCategory('hfe')"
-                    style="--cat-color: #7C3AED">
-                <span class="tab-icon">📡</span>
-                <span class="tab-label">HFE</span>
-                <span class="tab-badge" style="background:#7C3AED">5</span>
-            </button>
-<button class="tab "
-                    data-category="dce"
-                    onclick="showCategory('dce')"
-                    style="--cat-color: #059669">
-                <span class="tab-icon">⚡</span>
-                <span class="tab-label">DCE</span>
-                <span class="tab-badge" style="background:#059669">5</span>
-            </button>
-<button class="tab "
-                    data-category="appliance"
-                    onclick="showCategory('appliance')"
-                    style="--cat-color: #DC2626">
-                <span class="tab-icon">🏠</span>
-                <span class="tab-label">家電業界</span>
-                
-            </button>
-<button class="tab "
-                    data-category="casino"
-                    onclick="showCategory('casino')"
-                    style="--cat-color: #D97706">
-                <span class="tab-icon">🎰</span>
-                <span class="tab-label">カジノ機器</span>
-                <span class="tab-badge" style="background:#D97706">5</span>
-            </button>
-<button class="tab "
-                    data-category="electronics"
-                    onclick="showCategory('electronics')"
-                    style="--cat-color: #0891B2">
-                <span class="tab-icon">🔌</span>
-                <span class="tab-label">電子産業動向</span>
-                <span class="tab-badge" style="background:#0891B2">5</span>
-            </button>
-    </div>
-</nav>
-
-<main>
-    <section class="category-section active" id="section-omron">
-            <div class="cat-header">
-                <div>
-                    <div class="cat-title-row">
-                        <span class="cat-icon">🏢</span>
-                        <h2 class="cat-title" style="color:#0066CC">オムロン情報</h2>
-                    </div>
-                    <p class="cat-desc">オムロン本社・グローバルニュース</p>
-                </div>
-                <span class="article-count">0件</span>
-            </div>
-            <div class="articles"><div class="empty">
-                <div class="empty-icon">🏢</div>
-                <p class="empty-title">ニュースが収集されていません</p>
-                <p class="empty-sub">次回の更新をお待ちください</p>
-            </div></div>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OMRON News Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#F5F6FA;--surface:#fff;--text:#1A1A2E;--text-secondary:#6B7280;--text-muted:#9CA3AF;--border:#E5E7EB;--header-bg:linear-gradient(135deg,#0A0F1E 0%,#162040 50%,#1A2744 100%)}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+header{background:var(--header-bg);padding:28px 24px 20px;position:relative;overflow:hidden}
+header::before{content:'';position:absolute;top:-50%;right:-10%;width:400px;height:400px;background:radial-gradient(circle,rgba(0,102,204,.12) 0%,transparent 70%);border-radius:50%}
+.header-inner{max-width:1100px;margin:0 auto;position:relative;z-index:1}
+.logo-row{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.logo-mark{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#0066CC,#00AAFF);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:17px;color:#fff;letter-spacing:-1px;flex-shrink:0}
+.logo-text{flex:1}.site-title{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px}
+.site-subtitle{font-size:12px;color:rgba(255,255,255,.55);font-weight:300;margin-top:2px}
+.lang-btn{display:inline-block;padding:5px 14px;border:1px solid rgba(255,255,255,.3);border-radius:20px;color:rgba(255,255,255,.8);font-size:12px;font-weight:500;text-decoration:none;transition:all .2s;white-space:nowrap}
+.lang-btn:hover{background:rgba(255,255,255,.15);color:#fff}
+.stats-row{display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+.stat{display:flex;align-items:center;gap:8px}
+.stat-value{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#fff}
+.stat-label{font-size:11px;color:rgba(255,255,255,.5);line-height:1.3}
+.update-time{margin-top:12px;font-size:11px;color:rgba(255,255,255,.35);font-family:'JetBrains Mono',monospace}
+nav{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.tab-scroll{max-width:1100px;margin:0 auto;display:flex;gap:4px;padding:10px 24px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab-scroll::-webkit-scrollbar{height:0}
+.tab{display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:8px;border:1.5px solid transparent;background:transparent;color:var(--text-secondary);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s}
+.tab:hover{background:#F3F4F6}
+.tab.active{background:color-mix(in srgb,var(--cat-color) 8%,transparent);border-color:var(--cat-color);color:var(--cat-color);font-weight:600}
+.tab-icon{font-size:17px}.tab-badge{font-size:10px;font-weight:700;color:#fff;border-radius:10px;padding:1px 7px;min-width:18px;text-align:center}
+main{max-width:1100px;margin:0 auto;padding:24px}
+.category-section{display:none;animation:fadeIn .3s ease}.category-section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.cat-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.cat-title-row{display:flex;align-items:center;gap:10px}.cat-icon{font-size:28px}
+.cat-title{font-size:22px;font-weight:800;letter-spacing:-.5px}.cat-desc{font-size:13px;color:var(--text-secondary);margin-top:3px}
+.article-count{font-size:12px;color:var(--text-muted);background:#F3F4F6;padding:4px 12px;border-radius:20px;font-weight:500}
+.articles{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--surface);border-radius:12px;padding:20px 24px;border-left:4px solid;box-shadow:0 1px 4px rgba(0,0,0,.04);transition:all .2s}
+.card:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,.07)}
+.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.importance{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.date{font-size:12px;color:var(--text-muted);font-family:'JetBrains Mono',monospace}
+.card-title{font-size:16px;font-weight:700;color:#111827;line-height:1.45;margin-bottom:10px;letter-spacing:-.3px}
+.card-summary{font-size:13.5px;color:#4B5563;line-height:1.75;margin-bottom:14px}
+.insight-box{display:flex;gap:8px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px;margin-bottom:14px}
+.insight-icon{font-size:16px;flex-shrink:0;margin-top:1px}.insight-text{font-size:12.5px;color:#92400E;line-height:1.65}
+.card-footer{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid #F3F4F6}
+.source{font-size:12px;color:var(--text-muted)}.source-link{font-size:12px;font-weight:600;text-decoration:none;transition:opacity .2s}.source-link:hover{opacity:.7}
+.empty{text-align:center;padding:60px 20px}.empty-icon{font-size:48px;opacity:.3;margin-bottom:12px}
+.empty-title{font-size:15px;font-weight:600;color:#374151}.empty-sub{font-size:13px;color:var(--text-muted);margin-top:4px}
+footer{text-align:center;padding:28px 24px;font-size:11px;color:var(--text-muted);border-top:1px solid var(--border);margin-top:48px}
+@media(max-width:640px){header{padding:20px 16px}.site-title{font-size:18px}main{padding:16px}.card{padding:16px}.cat-title{font-size:18px}.tab{padding:7px 12px;font-size:12px}}
+</style></head><body>
+<header><div class="header-inner">
+    <div class="logo-row"><div class="logo-mark">ON</div><div class="logo-text"><h1 class="site-title">OMRON News Intelligence</h1><p class="site-subtitle">オムロン電子部品 社員の皆様のための産業ニュースダッシュボード</p></div><a href="index.html" class="lang-btn">한국어</a></div>
+    <div class="stats-row"><div class="stat"><span class="stat-value">25</span><span class="stat-label">本日の記事</span></div><div class="stat"><span class="stat-value">16</span><span class="stat-label">重要度: 高</span></div><div class="stat"><span class="stat-value">6</span><span class="stat-label">カテゴリ数</span></div></div>
+    <p class="update-time">週間更新: 2026年03月27日 18:54 KST</p>
+</div></header>
+<nav><div class="tab-scroll"><button class="tab active" data-category="omron" onclick="showCategory('omron')" style="--cat-color:#0066CC">
+            <span class="tab-icon">🏢</span><span class="tab-label">オムロン情報</span>
+            <span class="tab-badge" style="background:#0066CC">5</span>
+        </button>
+<button class="tab " data-category="hfe" onclick="showCategory('hfe')" style="--cat-color:#7C3AED">
+            <span class="tab-icon">📡</span><span class="tab-label">HFE</span>
+            <span class="tab-badge" style="background:#7C3AED">5</span>
+        </button>
+<button class="tab " data-category="dce" onclick="showCategory('dce')" style="--cat-color:#059669">
+            <span class="tab-icon">⚡</span><span class="tab-label">DCE</span>
+            <span class="tab-badge" style="background:#059669">5</span>
+        </button>
+<button class="tab " data-category="appliance" onclick="showCategory('appliance')" style="--cat-color:#DC2626">
+            <span class="tab-icon">🏠</span><span class="tab-label">家電業界</span>
+            
+        </button>
+<button class="tab " data-category="casino" onclick="showCategory('casino')" style="--cat-color:#D97706">
+            <span class="tab-icon">🎰</span><span class="tab-label">カジノ機器</span>
+            <span class="tab-badge" style="background:#D97706">5</span>
+        </button>
+<button class="tab " data-category="electronics" onclick="showCategory('electronics')" style="--cat-color:#0891B2">
+            <span class="tab-icon">🔌</span><span class="tab-label">電子産業動向</span>
+            <span class="tab-badge" style="background:#0891B2">5</span>
+        </button></div></nav>
+<main><section class="category-section active" id="section-omron">
+            <div class="cat-header"><div><div class="cat-title-row"><span class="cat-icon">🏢</span><h2 class="cat-title" style="color:#0066CC">オムロン情報</h2></div><p class="cat-desc">オムロン本社・グローバルニュース</p></div><span class="article-count">5件</span></div>
+            <div class="articles"><article class="card" style="border-left-color:#D97706">
+                    <div class="card-top"><span class="importance" style="background:#D9770618;color:#D97706">重要度: 中</span><span class="date">2026-03-23</span></div>
+                    <h3 class="card-title">오므론, 여성리더십 강화 '나데시코 브랜드' 8번째 인증 획득</h3>
+                    <p class="card-summary"><cite index="16-3">오므론이 여성리더십과 젠더 주도 비즈니스 변환에 대한 노력을 인정받아 '나데시코 브랜드' 인증을 8번째로 획득</cite>했습니다.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 오므론의 지속적인 ESG 경영과 인적자본 다양화 전략을 보여주는 성과로, 글로벌 기업 이미지 강화 및 인재 확보에 긍정적 영향을 줄 것으로 예상됩니다.</p></div>
+                    <div class="card-footer"><span class="source">📌 OMRON Global</span><a href="https://www.omron.com/global/en/" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#0066CC">記事を読む →</a></div>
+                </article>
+<article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2026-03-16</span></div>
+                    <h3 class="card-title">오므론, 유럽·인도 사업 중기전략 발표 '신뢰 기반 성장' 강조</h3>
+                    <p class="card-summary"><cite index="16-6">오므론이 2030년 유럽과 인도 사업의 중기 전략을 공개하며 '신뢰 기반 성장(Trusted Growth)', 'GEMBA DX', 포트폴리오 재구성을 강조하고 이 지역을 글로벌 변환 전략의 중점 지역으로 위치</cite>시켰습니다.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 신흥 시장과 주요 지역에 대한 전략적 집중으로 글로벌 사업 포트폴리오를 재편하고 있으며, 디지털 변환(DX)을 통한 경쟁력 강화를 추진 중입니다. 전자부품 사업 재편과 연계된 핵심 전략으로 보입니다.</p></div>
+                    <div class="card-footer"><span class="source">📌 OMRON Global</span><a href="https://www.omron.com/global/en/" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#0066CC">記事を読む →</a></div>
+                </article>
+<article class="card" style="border-left-color:#D97706">
+                    <div class="card-top"><span class="importance" style="background:#D9770618;color:#D97706">重要度: 中</span><span class="date">2026-02-09</span></div>
+                    <h3 class="card-title">오므론, EcoVadis 지속가능성 평가에서 상위 5% 등급 획득</h3>
+                    <p class="card-summary"><cite index="4-2">오므론이 2026년 2월 9일 EcoVadis 지속가능성 평가에서 상위 5% 등급을 획득</cite>했습니다.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 공급망 관리 및 환경 경영 역량이 국제적으로 인정받았으며, 기업의 ESG 공약 이행 성과를 보여줍니다. 고객사들의 지속가능성 요구사항을 충족할 수 있는 경쟁력 확보를 의미합니다.</p></div>
+                    <div class="card-footer"><span class="source">📌 OMRON Global</span><a href="https://www.omron.com/global/en/media/" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#0066CC">記事を読む →</a></div>
+                </article>
+<article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2026-02-05</span></div>
+                    <h3 class="card-title">오므론, '미디엄텀 로드맵 SF 2단계' 경영체계 강화 발표</h3>
+                    <p class="card-summary"><cite index="5-3">오므론이 기존 CFO, CTO, CHRO 직책 외에 신규로 CIO, CDXO, CRO 직책을 신설하여 6개 CxO 프레임워크를 구축하고 각 임원의 권한과 책임을 재정의</cite>했습니다.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 급속한 경영 의사결정 체계(Speed Management) 강화 및 사업부(BC) 자율성 확대로 시장 변화 대응력을 높이는 구조 개편입니다. 디지털 변환(CIO, CDXO)과 위험관리(CRO) 강화는 4차 산업과 지정학적 리스크 대응을 시사합니다.</p></div>
+                    <div class="card-footer"><span class="source">📌 OMRON Global</span><a href="https://www.omron.com/global/en/media/2026/02/c0205-2.html" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#0066CC">記事を読む →</a></div>
+                </article>
+<article class="card" style="border-left-color:#D97706">
+                    <div class="card-top"><span class="importance" style="background:#D9770618;color:#D97706">重要度: 中</span><span class="date">2026-03-10</span></div>
+                    <h3 class="card-title">오므론, 고속 바코드 검증 시스템 'VHV5' 출시</h3>
+                    <p class="card-summary"><cite index="3-1,3-2">오므론이 1D, 2D, DPM(Direct Part Mark) 코드를 생산 라인에서 직접 검증하는 고속 바코드 검증 시스템 VHV5를 출시하였으며, 분당 최대 1,000개 코드를 실시간 검증</cite>할 수 있습니다.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 산업 자동화 및 추적성 확보 요구 증가에 대응하는 새로운 솔루션으로, 제조 공정의 품질 관리 및 규정 준수를 강화합니다. 전자부품 사업과 산업 자동화 사업 간의 통합 솔루션 전략을 반영합니다.</p></div>
+                    <div class="card-footer"><span class="source">📌 OMRON Europe</span><a href="https://industrial.omron.eu/en/news-discover/news" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#0066CC">記事を読む →</a></div>
+                </article></div>
         </section>
 <section class="category-section " id="section-hfe">
-            <div class="cat-header">
-                <div>
-                    <div class="cat-title-row">
-                        <span class="cat-icon">📡</span>
-                        <h2 class="cat-title" style="color:#7C3AED">HFE</h2>
-                    </div>
-                    <p class="cat-desc">高周波装置・モバイル検査・半導体装置</p>
-                </div>
-                <span class="article-count">5件</span>
-            </div>
-            <div class="articles"><article class="card" style="border-left-color: #DC2626">
-                    <div class="card-top">
-                        <span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span>
-                        <span class="date">2026-01-28</span>
-                    </div>
-                    <h3 class="card-title">アドバンテスト、SoC向け検査装置の生産能力を年5000台超へ拡大</h3>
-                    <p class="card-summary">アドバンテストは2027年3月末までにSoC向け検査装置の生産能力を年5000台超へ引き上げると発表。需要拡大が想定を上回っており、その後2年以内に7500台、最終的には1万台体制を目指す。AI生成需要の高まりに対応した大規模能力増強計画。</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> AI・データセンター向け半導体需要の急増に伴うSoC検査装置の需要拡大は、オムロン電子部品の検査関連製品・技術の営業機会を大きく拡大。特に高度な検査技術とソリューション提供での差別化が重要。</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 Bloomberg Japan</span>
-                        <a href="https://www.bloomberg.com/jp/news/articles/2026-01-28/T9JZ5UKJH6V400" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#7C3AED">記事を読む →</a>
-                    </div>
+            <div class="cat-header"><div><div class="cat-title-row"><span class="cat-icon">📡</span><h2 class="cat-title" style="color:#7C3AED">HFE</h2></div><p class="cat-desc">高周波装置・モバイル検査・半導体装置</p></div><span class="article-count">5件</span></div>
+            <div class="articles"><article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2026-03-16</span></div>
+                    <h3 class="card-title">Onto Innovation Launches Dragonfly G5 Inspection System - March 2026</h3>
+                    <p class="card-summary"><cite index="38-1,38-2">Onto Innovation Inc. launched the Dragonfly® G5 inspection system in March 2026</cite>. 최신 반도체 검사 장비 출시로 고급 노드 웨이퍼 검사 성능 강화.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 고급 노드 웨이퍼 결함 검사 시스템 시장이 2025년 USD 2.73 억에서 2026년 USD 8.87 억으로 폭발적 성장. <cite index="38-8,38-9">Dragonfly G5와 같은 고급 검사 솔루션 도입이 게이트-올-어라운드 트랜지스터 아키텍처 노드에서 필수적</cite>.</p></div>
+                    <div class="card-footer"><span class="source">📌 Future Market Insights, Onto Innovation</span><a href="https://www.futuremarketinsights.com/reports/advanced-node-wafer-defect-inspection-systems-market" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#7C3AED">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #DC2626">
-                    <div class="card-top">
-                        <span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span>
-                        <span class="date">2026-01-27</span>
-                    </div>
-                    <h3 class="card-title">半導体ウエハー検査装置市場、2026年に7.05億ドルへ成長</h3>
-                    <p class="card-summary">半導体ウエハー検査装置市場は2025年の6.52億ドルから2026年の7.05ドルへ8.1％のCAGRで成長。微細化が進む高密度IC、先進パッケージング技術の拡大、AI・5G・IoT向けの需要増加が主要成長要因。</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> 検査装置市場の継続的な成長は、オムロンの検査・計測ソリューション事業の拡大機会を提供。特に3次元実装、チップレット、SiPなどの先進技術対応型検査装置の開発・提供が営業強化の鍵。</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 Research and Markets / GlobeNewsWire</span>
-                        <a href="https://www.globenewswire.com/news-release/2026/01/27/3226150/28124/en/Semiconductor-Wafer-Inspection-Equipment-Market-Report-2026" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#7C3AED">記事を読む →</a>
-                    </div>
+<article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2026-03-26</span></div>
+                    <h3 class="card-title">TRI Showcases Advanced WLP/PLP Inspection Solutions at SEMICON SEA 2026</h3>
+                    <p class="card-summary"><cite index="37-1,37-3">Test Research, Inc. (TRI)가 SEMICON SEA 2026(5월 5-7일, 말레이시아 쿠알라룸푸르)에서 최신 Advanced WLP/PLP 및 SEMI 백엔드 패키지 검사 솔루션을 선보일 예정</cite>. 웨이퍼 레벨 검사 플랫폼 TR7950Q SII 공개.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> <cite index="37-6">TRI의 검사 응용은 Chiplet & Chip-on-Wafer (CoW), System-in-Package (SiP), Advanced WLP, TSV Metrology 등을 포함</cite>. 첨단 패키징 기술 채택이 가속화되고 있는 업계 추세 반영.</p></div>
+                    <div class="card-footer"><span class="source">📌 WNIE - What's New in Electronics</span><a href="https://www.wnie.online/advanced-semi-inspection-and-metrology-solutions-at-semicon-sea-2026/" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#7C3AED">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #DC2626">
-                    <div class="card-top">
-                        <span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span>
-                        <span class="date">2025-11-20</span>
-                    </div>
-                    <h3 class="card-title">東京エレクトロンデバイス、2026年に3次元実装向け検査装置を投入</h3>
-                    <p class="card-summary">東京エレクトロンデバイスは2026年にアドバンスドパッケージなど半導体を高密度に実装する3次元実装向けの検査装置を投入。ウエハー検査技術を活かし、顧客基盤をファウンドリー、メモリーメーカー、OSAT等へ拡大。</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> 3次元実装向け検査装置の市場投入は業界全体の成長トレンドを示唆。オムロンも同分野での検査ソリューション強化により、新規顧客層へのアクセス機会を獲得可能。競争激化に対応した技術開発が必須。</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 ニュースイッチ</span>
-                        <a href="https://newswitch.jp/p/47595" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#7C3AED">記事を読む →</a>
-                    </div>
+<article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2026-01-27</span></div>
+                    <h3 class="card-title">Semiconductor Wafer Inspection Equipment Market Growth: $7.05B in 2026, CAGR 8.1%</h3>
+                    <p class="card-summary"><cite index="31-3,31-4">반도체 웨이퍼 검사 장비 시장이 2025년 USD 6.52 억에서 2026년 USD 7.05 억으로 확대되며 CAGR 8.1% 성장. 성장은 반도체 제조 노드 고도화, 복잡한 IC의 결함 밀도 증가, 웨이퍼팹 자본 투자 증가, 수율 최적화 수요 등으로 주도</cite>.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> <cite index="31-6,31-7">2030년까지 USD 9.67 억에 도달할 것으로 예상. 고급 로직 및 메모리 생산 증가, 전역 파운드리 용량 확대, 칩 아키텍처 복잡성 증가, 실시간 품질 모니터링 필요성이 주요 성장 요인</cite>. <cite index="31-8">히타치 고테크가 3월 2024년 LS9300AD 출시로 이중 표면 검사 혁신</cite>.</p></div>
+                    <div class="card-footer"><span class="source">📌 Research and Markets, Globe Newswire</span><a href="https://www.globenewswire.com/news-release/2026/01/27/3226150/28124/en/Semiconductor-Wafer-Inspection-Equipment-Market-Report-2026" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#7C3AED">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #DC2626">
-                    <div class="card-top">
-                        <span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span>
-                        <span class="date">2025-12-13</span>
-                    </div>
-                    <h3 class="card-title">半導体検査装置市場、2033年までに139億ドルへ急成長予測</h3>
-                    <p class="card-summary">世界の半導体検査システム市場は2024年の62億ドルから2032年の139億ドルへ拡大と予測。AI・機械学習の統合、複雑な3Dアーキテクチャ対応、微細欠陥検出需要の増加が成長要因。</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> 市場規模の倍以上の成長見通しは、オムロンの検査装置事業における長期的な成長機会を確実に示唆。AI/ML統合技術やメモリー（特にHBM）検査への対応強化で、既存顧客との深化と新規受注拡大が期待できる。</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 ResearchInsights Consulting</span>
-                        
-                    </div>
+<article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2026-01-16</span></div>
+                    <h3 class="card-title">AI-Powered Semiconductor Inspection Equipment Growth Accelerates - 35% Adoption</h3>
+                    <p class="card-summary"><cite index="25-1,25-2">AI 기반 검사 장비 도입이 지난 3년간 35% 이상 증가했으며, 실시간 결함 탐지 및 분류를 가능하게 함. 이러한 자동화 추세가 시장 성장을 크게 촉진</cite>.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> <cite index="29-21,29-22,29-23">AI와 머신러닝이 실시간 결함 분류와 예측 분석을 가능하게 함. KLA Corporation과 Applied Materials 같은 선두 기업들이 적응형 학습이 가능한 AI 기반 플랫폼 도입. 이는 제조 효율성을 높이고 운영 비용을 절감</cite>.</p></div>
+                    <div class="card-footer"><span class="source">📌 Semiconductor Insight, Silicon Semiconductor News</span><a href="https://semiconductorinsight.com/report/semiconductor-inspection-equipment-market/" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#7C3AED">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #D97706">
-                    <div class="card-top">
-                        <span class="importance" style="background:#D9770618;color:#D97706">重要度: 中</span>
-                        <span class="date">2025-10-13</span>
-                    </div>
-                    <h3 class="card-title">半導体メトロロジー・検査装置市場、2026年に15.84億ドルへ拡大</h3>
-                    <p class="card-summary">半導体メトロロジー・検査装置市場は2026年に15.84億ドル、2034年には27.56億ドルに成長予測（CAGR 7.20%）。光学検査が59.3%のシェア維持。AI/ML統合、リアルタイム計測、複合技術統合が主要トレンド。</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> 光学検査装置が引き続き市場の過半を占める中、AI活用検査への需要急増は、オムロンの光学・画像処理技術とAI統合ソリューションの差別化機会を拡大。アジア太平洋地域での営業展開強化が重要。</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 Fortune Business Insights</span>
-                        
-                    </div>
+<article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2025-12-16</span></div>
+                    <h3 class="card-title">SEMI Reports 2026 Semiconductor Equipment Market Forecast: $145 Billion</h3>
+                    <p class="card-summary"><cite index="44-12,44-13">SEMI는 반도체 제조 장비 글로벌 매출이 2025년 기록적 USD 133 억에서 2026년 USD 145 억, 2027년 USD 156 억으로 성장할 것으로 예측</cite>. <cite index="44-1,44-3">백엔드 부문에서 검사 장비 매출이 2026년 12.0% 성장, 조립·패키징 매출이 9.2% 성장할 것으로 전망</cite>.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> <cite index="44-4">이러한 성장은 기기 아키텍처의 복잡성 증가, 고급·이기종 패키징의 가속화된 채택, AI 및 HBM 반도체의 엄격한 성능 요구사항이 뒷받침</cite>. 클립릿 기술과 3D 스택 채택으로 검사 장비 수요가 크게 증가하는 추세.</p></div>
+                    <div class="card-footer"><span class="source">📌 SEMI</span><a href="https://www.semi.org/en/semi-press-release/global-semiconductor-equipment-sales-projected-to-reach-a-record-of-156-billion-dollars-in-2027-semi-reports" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#7C3AED">記事を読む →</a></div>
                 </article></div>
         </section>
 <section class="category-section " id="section-dce">
-            <div class="cat-header">
-                <div>
-                    <div class="cat-title-row">
-                        <span class="cat-icon">⚡</span>
-                        <h2 class="cat-title" style="color:#059669">DCE</h2>
-                    </div>
-                    <p class="cat-desc">DCパワー・バッテリー・ESS・データセンター</p>
-                </div>
-                <span class="article-count">5件</span>
-            </div>
-            <div class="articles"><article class="card" style="border-left-color: #DC2626">
-                    <div class="card-top">
-                        <span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span>
-                        <span class="date">2026-03-11</span>
-                    </div>
-                    <h3 class="card-title">InterBattery 2026：LG Energy SolutionがJF2 DC LINK 5.0を発表、データセンターESS市場で新展開</h3>
-                    <p class="card-summary">LG Energy SolutionはInterBattery 2026展示会（3月11日開催）で、LFP系統用ESS「JF2 DC LINK 5.0」を発表し、バッテリーカテゴリー受賞を獲得。データセンター向けLFPバッテリーバックアップソリューション（BBU）も初出展。Samsung SDIはLFP採用の統合ESS「Samsung Battery Box 2.0」の2026年下半期の量産開始を宣言、AIデータセンター電源ニーズの拡大に対応。</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> データセンター向けESS・BBU市場での韓国大手2社の新製品投入により、LFP系統ESSとデータセンター電源バックアップが成長分野として加速。高出力コネクタやDC給電関連部品の需要が急増する機会。</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 Business Korea / InterBattery 2026</span>
-                        <a href="https://www.businesskorea.co.kr/news/articleView.html?idxno=265071" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#059669">記事を読む →</a>
-                    </div>
+            <div class="cat-header"><div><div class="cat-title-row"><span class="cat-icon">⚡</span><h2 class="cat-title" style="color:#059669">DCE</h2></div><p class="cat-desc">DCパワー・バッテリー・ESS・データセンター</p></div><span class="article-count">5件</span></div>
+            <div class="articles"><article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2026-03-11</span></div>
+                    <h3 class="card-title">LG·삼성SDI·SK온, 인터배터리 2026서 AI 시대 배터리 전략 공개</h3>
+                    <p class="card-summary">국내 배터리 3사가 3월 11-13일 서울 코엑스에서 열린 '인터배터리 2026'에서 전고체 배터리, ESS, AI 데이터센터용 배터리 솔루션을 공개했다. LG에너지솔루션은 540㎡ 최대 규모 전시장을 꾸려 LFP 기반 UPS·BBU 솔루션과 로보틱스 배터리를 선보였고, 삼성SDI는 'AI thinks, Battery enables' 슬로건으로 초고출력 배터리와 AI 기반 화재 예방 소프트웨어를 공개했으며, SK온은 고에너지밀도 LFP 파우치 배터리와 EIS 기반 ESS 솔루션을 전시했다.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 전기차 시장 캐즘 극복을 위해 한국 배터리 산업이 AI 인프라 시장으로의 전략적 확장을 선언했다. 특히 데이터센터 전력 안정화(UPS·BBU), ESS 대용량 저장, 로봇·드론용 고성능 배터리로 차세대 시장을 선점하려는 움직임이 두드러진다. 이는 단순 에너지 저장을 넘어 전력 인프라 솔루션 기업으로의 포트폴리오 다변화를 의미한다.</p></div>
+                    <div class="card-footer"><span class="source">📌 더일렉(THE ELEC), 아시아투데이</span><a href="https://www.thelec.kr/news/articleView.html?idxno=52899" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#059669">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #DC2626">
-                    <div class="card-top">
-                        <span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span>
-                        <span class="date">2026-03-13</span>
-                    </div>
-                    <h3 class="card-title">Samsung SDI・LG Energy Solutionが特許強化戦略を展開、全固体電池とESS技術で競争激化</h3>
-                    <p class="card-summary">InterBattery 2026でSamsung SDIはプリズマティック電池で1,200件、全固体電池で1,100件の米国特許を保有し業界優位を強調。LG Energy Solutionは円筒電池で3倍、高電圧電解質で2倍以上の特許を有する。両社ともESS・次世代電池技術での知財保護を加速し、AIデータセンター向け高出力電池の競争が激化。</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> 特許競争による技術差別化が進むなか、新型コネクタ・高電圧給電部品の標準化とカスタマイズ需要が増加。オムロン電子部品のコネクタソリューション提案機会拡大。</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 Korea Herald / The Star Malaysia</span>
-                        <a href="https://www.koreaherald.com/article/10692236" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#059669">記事を読む →</a>
-                    </div>
+<article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2026-01-28</span></div>
+                    <h3 class="card-title">2026 ESS 산업 대전망 세미나, 장주기 ESS 중심 입찰시장 본격화</h3>
+                    <p class="card-summary">한국미래기술교육연구원이 2026년 1월 28일 개최한 'ESS 산업 대전망' 세미나에서 정부의 제11차 전력수급기본계획 발표: 2038년까지 누적 21.5GW 규모 장주기 ESS 설비 구축 목표. 2026년부터 장주기 ESS 중심의 신규 입찰시장 제도 본격화. AI 데이터센터·신재생에너지 확대로 ESS 수요 급증이 핵심 과제로 대두.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> ESS 시장은 더 이상 단순 전력 저장장치가 아닌 '플렉서블 자산'으로 진화하고 있다. 정부 정책 변화와 맞춰 발전용·산업용·데이터센터·산업단지용 전방위적 수요 확대가 예상되며, 배터리 안전성·냉각 기술·AI 기반 운영 기술의 중요성이 급상승하고 있다. 향후 10년 ESS 시장의 구조적 변화가 가속화될 전망이다.</p></div>
+                    <div class="card-footer"><span class="source">📌 중기이코노미, 한국미래기술교육연구원</span><a href="https://www.junggi.co.kr/article/articleView.html?no=35003" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#059669">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #DC2626">
-                    <div class="card-top">
-                        <span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span>
-                        <span class="date">2026-03-22</span>
-                    </div>
-                    <h3 class="card-title">データセンター向けESS・バッテリー市場が急成長、2026年北米で需要40%以上増加予測</h3>
-                    <p class="card-summary">LG Energy Solutionは2026年のグローバルESS導入が40%以上成長見通し、北米が総需要の約50%を占めると予想。60GWh以上の生産能力拡張を計画し、北米設備で80%以上を配置。Samsung SDIもESS需要の継続的成長を見込み、2026年はグリッドスケール・データセンター拡張が主要ドライバー。</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> データセンター急増に伴うESS・直流給電需要の急速な拡大。48V～800V直流給電システム、高容量バッテリーバックアップ用コネクタ・バスバー関連の電子部品需要が急増する重要なタイミング。</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 Energy Storage News / DataM Intelligence</span>
-                        <a href="https://www.ess-news.com/2025/12/15/hithium-pushes-into-long-duration-storage-and-ai-data-centres-with-1300ah-battery-cell-6-9-mw-55-2-mwh-system-and-lithium-sodium-hybrid/" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#059669">記事を読む →</a>
-                    </div>
+<article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2026-03-20</span></div>
+                    <h3 class="card-title">AI 데이터센터 전력 수요, 2030년까지 미국 전체 전력의 9% 차지 전망</h3>
+                    <p class="card-summary">AI 확산으로 글로벌 데이터센터 전력 수요가 2022년 460TWh에서 2026년 1,000TWh로 두 배 이상 급증할 것으로 전망. 미국은 2028년 현재의 3배 규모로 증가 예상, 2030년 미국 전체 전력의 9% 점유 전망. AI 데이터센터는 기존(10-25MW) 대비 100MW 이상의 고밀도 전력을 요구하며, 수도권 집중도(68%)로 인한 전력 인프라 불균형이 심화.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 전력망 확충 지연 대응으로 데이터센터의 'On-site 전원' 확보 전략이 핵심 경쟁력으로 부상했다. 직접PPA·마이크로그리드·ESS 인센티브 등 분산형 전원 제도 정비의 시급성이 대두되고 있으며, 2030년까지 전 세계 데이터센터의 30%가 자체 전원을 확보할 것으로 예상된다. DC파워 기술과 800V 고전압 시스템의 수요도 급증하고 있다.</p></div>
+                    <div class="card-footer"><span class="source">📌 전기저널, 파이낸셜뉴스</span><a href="https://www.keaj.kr/news/articleView.html?idxno=6049" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#059669">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #DC2626">
-                    <div class="card-top">
-                        <span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span>
-                        <span class="date">2025-12-07</span>
-                    </div>
-                    <h3 class="card-title">AI データセンター向け次世代800VDCアーキテクチャが標準化加速、従来48V給電から大幅シフト</h3>
-                    <p class="card-summary">AI サーバーの膨大な電力需要により、従来の48V・12V直流給電から高電圧800VDCアーキテクチャへの転換が急速化。電流を大幅削減し電力損失最小化と高密度化を実現。2026年後半以降、大規模データセンターで800VDC導入が加速見込み。ローム等の半導体企業も対応製品開発を進捗中。</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> データセンター向け高電圧直流給電（HVDC：800VDC）の本格普及時代入り。高耐圧コネクタ、大電流バスバー、直流遮断器などの大電力電子部品の急速な需要拡大。新型部品規格対応が営業活動の急所。</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 Economic News / ROM Holdings</span>
-                        <a href="https://www.zaikei.co.jp/article/20251207/835392.html" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#059669">記事を読む →</a>
-                    </div>
+<article class="card" style="border-left-color:#D97706">
+                    <div class="card-top"><span class="importance" style="background:#D9770618;color:#D97706">重要度: 中</span><span class="date">2026-03-25</span></div>
+                    <h3 class="card-title">Vertiv·Eaton·Delta, 800V DC 데이터센터 전력 솔루션 2026년 상용화</h3>
+                    <p class="card-summary">데이터센터의 전력 효율화를 위한 800V DC 고전압 시스템이 2026년 상용화 단계로 진입. Vertiv의 800V DC 에코시스템과 Nvidia Vera Rubin Ultra Kyber 플랫폼 통합 예정(2026년 상반기), Eaton의 중압 고체 변압기(SST) 기반 DC 배전 시스템, Delta의 660kW 고출력 in-row 파워랙(내장 480kW 배터리백업) 등 다양한 솔루션 출시. 구리 사용 45% 감소, 비용 30% 절감 기대.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 고밀도 AI 인프라 시장에서 AC 대비 DC 파워 시스템으로의 전환이 본격화되고 있다. 대역폭 메모리(HBM), 전력반도체, 고효율 냉각 기술과의 융합으로 에너지 효율과 확장성이 동시에 향상되고 있으며, 이는 DC파워 장비(PCS·컨버터·UPS) 산업의 급성장을 견인하고 있다.</p></div>
+                    <div class="card-footer"><span class="source">📌 IEEE Spectrum</span><a href="https://spectrum.ieee.org/data-center-dc" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#059669">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #D97706">
-                    <div class="card-top">
-                        <span class="importance" style="background:#D9770618;color:#D97706">重要度: 中</span>
-                        <span class="date">2026-01-08</span>
-                    </div>
-                    <h3 class="card-title">米国ESS市場でLFP電池採用が加速、韓国・中国メーカー北米工場での生産シフト進行中</h3>
-                    <p class="card-summary">LG Energy SolutionとSamsung SDIが米国内での LFP電池生産を拡大。EVバッテリー工場のESS生産への転換が相次ぐ。2026年米国ESS電池需要49GWh に対し、国内生産能力で FEOC対応が可能に。EV需要低迷下でESS・データセンター電源がメーカーの生産戦略の重心へシフト。</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> 北米でのLFP・ESS生産拡大による、地域別電子部品サプライチェーン再構築。現地調達強化とカスタマイズ部品需要が急増し、オムロン電子部品の北米営業機会が大幅拡大。</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 Solar Power World Online / American Clean Power Association</span>
-                        <a href="https://www.solarpowerworldonline.com/2026/01/almost-overnight-the-us-became-an-oversupply-market-for-ess-battery-cells/" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#059669">記事を読む →</a>
-                    </div>
+<article class="card" style="border-left-color:#D97706">
+                    <div class="card-top"><span class="importance" style="background:#D9770618;color:#D97706">重要度: 中</span><span class="date">2026-03-25</span></div>
+                    <h3 class="card-title">Amphenol, DC 전력 패널 'nrgILS' 출시 - 자동화된 스마트 전력 관리</h3>
+                    <p class="card-summary">Amphenol Network Solutions가 데이터센터·통신망 전용 DC 전력 패널 'nrgILS' 공개. 실시간 전류·전압 모니터링과 자동 의사결정 기능으로 무반응 장비 자동 리셋, 백업 전력 사용 시 비필수 부하 차단, 회복 시 저류입 전류 조절 등이 가능. 325A/feed 고전류 대응, 16개 출력회로 지원으로 고밀도 데이터센터 전력 관리 혁신.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> DC 전력 패널이 단순 배전에서 AI 기반 자동 제어 시스템으로 진화하고 있다. 실시간 운영 가시성과 프로액티브 장애 대응이 가능해지면서 데이터센터의 가용성과 에너지 효율이 동시에 개선되는 추세. 클라우드·5G·엣지 인프라의 고신뢰성 요구에 부응하는 차세대 DCE(DC Power Equipment) 솔루션이 확산되고 있다.</p></div>
+                    <div class="card-footer"><span class="source">📌 Cabling Installation & Maintenance</span><a href="https://www.cablinginstall.com/data-center/press-release/55366633/amphenol-network-solutions-introduces-intelligent-dc-power-panel-for-data-centers-and-telecom-networks" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#059669">記事を読む →</a></div>
                 </article></div>
         </section>
 <section class="category-section " id="section-appliance">
-            <div class="cat-header">
-                <div>
-                    <div class="cat-title-row">
-                        <span class="cat-icon">🏠</span>
-                        <h2 class="cat-title" style="color:#DC2626">家電業界</h2>
-                    </div>
-                    <p class="cat-desc">LG・サムスン 家電製品動向</p>
-                </div>
-                <span class="article-count">0件</span>
-            </div>
-            <div class="articles"><div class="empty">
-                <div class="empty-icon">🏠</div>
-                <p class="empty-title">ニュースが収集されていません</p>
-                <p class="empty-sub">次回の更新をお待ちください</p>
-            </div></div>
+            <div class="cat-header"><div><div class="cat-title-row"><span class="cat-icon">🏠</span><h2 class="cat-title" style="color:#DC2626">家電業界</h2></div><p class="cat-desc">LG・サムスン 家電製品動向</p></div><span class="article-count">0件</span></div>
+            <div class="articles"><div class="empty"><div class="empty-icon">🏠</div><p class="empty-title">ニュースが収集されていません</p><p class="empty-sub">次回の更新をお待ちください</p></div></div>
         </section>
 <section class="category-section " id="section-casino">
-            <div class="cat-header">
-                <div>
-                    <div class="cat-title-row">
-                        <span class="cat-icon">🎰</span>
-                        <h2 class="cat-title" style="color:#D97706">カジノ機器</h2>
-                    </div>
-                    <p class="cat-desc">カジノ機器・ゲーミング装置</p>
-                </div>
-                <span class="article-count">5件</span>
-            </div>
-            <div class="articles"><article class="card" style="border-left-color: #DC2626">
-                    <div class="card-top">
-                        <span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span>
-                        <span class="date">2026-03-24</span>
-                    </div>
-                    <h3 class="card-title">슬롯머신 시장 2030년 200억 달러 돌파 예상, 영상 슬롯머신 주도</h3>
-                    <p class="card-summary">슬롯머신 시장이 2030년 200억 달러를 넘길 것으로 전망되며, 비디오 슬롯머신이 전체의 56% 이상을 차지할 것으로 예상된다. 북미가 최대 시장으로 80억 달러에 이를 것이며, 2025년 50억 달러에서 연 10% 성장률을 보일 것으로 예상된다. 고성능 캐비닛, AI 기반 플레이어 분석, 몰입형 그래픽, 캐시리스 결제 시스템 도입이 주요 성장 동력이다.</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> 오므론 전자부품 영업 관점에서 고성능 슬롯머신 캐비닛의 급증은 고해상도 디스플레이, 안정적인 전원 관리 부품, AI 연산용 고급 기판 및 센서 부품에 대한 수요 증가로 이어질 것으로 예상된다. 특히 몰입형 게이밍 경험 구현을 위한 정밀 제어 부품의 영업 기회가 확대될 것이다.</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 EINPresswire / The Business Research Company</span>
-                        <a href="https://www.einpresswire.com/article/901226543/slot-machines-market-2026-evolving-with-immersive-gaming-and-digital-integration" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#D97706">記事を読む →</a>
-                    </div>
+            <div class="cat-header"><div><div class="cat-title-row"><span class="cat-icon">🎰</span><h2 class="cat-title" style="color:#D97706">カジノ機器</h2></div><p class="cat-desc">カジノ機器・ゲーミング装置</p></div><span class="article-count">5件</span></div>
+            <div class="articles"><article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2026-03-19</span></div>
+                    <h3 class="card-title">슬롯머신 시장 2030년 20억 달러 규모 돌파, 초고화질 곡면 화면 기술이 게이밍 경험 혁신</h3>
+                    <p class="card-summary">카지노 게이밍 산업이 초고화질 곡면 디스플레이 기술을 통해 플레이어 참여도를 높이고 있습니다. 코나미 게이밍의 솔스티스(49인치 4K UHD) 및 IGT의 RISE55 캐비닛(55인치 초고선명도 곡면 화면)은 역동적 조명과 반응형 음향 시스템으로 몰입형 게임 경험을 제공합니다.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 차세대 슬롯 캐비닛은 고해상도 곡면 디스플레이, 반응형 조명, 고급 오디오 시스템을 통합하여 플레이어 몰입도를 극대화하고 있습니다. 전자부품 관점에서 고성능 디스플레이, 조명 제어 모듈, 정밀 오디오 부품의 수요가 증가하는 추세입니다.</p></div>
+                    <div class="card-footer"><span class="source">📌 EINPresswire (The Business Research Company)</span><a href="https://www.einpresswire.com/article/900170332/slot-machines-market-2026-evolving-with-enhanced-digital-gaming-and-casino-innovations" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#D97706">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #DC2626">
-                    <div class="card-top">
-                        <span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span>
-                        <span class="date">2026-03-23</span>
-                    </div>
-                    <h3 class="card-title">카지노 게이밍 기기 시장의 차세대 기술 트렌드: 초고해상도 곡면 화면과 AI 플레이어 분석</h3>
-                    <p class="card-summary">카지노 게이밍 기기 시장은 초고해상도 곡면 화면, AI 기반 플레이어 분석, 몰입형 디스플레이 기술에 집중하고 있다. 콘아미는 49인치 4K UHD C자형 디스플레이의 Solstice 캐비닛을 2025년 10월 출시했고, IGT는 55인치 Ultra-HD 곡면 화면의 RISE55 캐비닛을 소개했다. 고급 조명 시스템과 반응형 오디오가 주요 차별화 요소이다.</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> 차세대 슬롯머신의 곡면 디스플레이, 동적 조명, 정밀 센서 및 제어 기술 수요는 오므론의 센서, 콘넥터, 전원 관리 및 광학 부품 판매에 직결된다. 특히 아시아 지역 카지노 확대에 따른 대형 납품 계약 체결 가능성이 높아질 것으로 예상된다.</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 EINPresswire / The Business Research Company</span>
-                        <a href="https://natlawreview.com/press-releases/casino-gaming-equipment-market-2026-advancing-immersive-gaming-technologies" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#D97706">記事を読む →</a>
-                    </div>
+<article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2026-03-23</span></div>
+                    <h3 class="card-title">카지노 게이밍 장비 시장, AI 기반 플레이어 분석 및 캐시리스 게이밍 시스템 주도</h3>
+                    <p class="card-summary">카지노 게이밍 장비 시장은 AI 기반 플레이어 분석, 캐시리스 게이밍 시스템, 고급 디지털 경험을 중심으로 경쟁하고 있습니다. IGT는 9월 2025년 55인치 곡면 화면 AI 기반 게이밍 캐비닛을 출시했으며, 실시간으로 플레이어 선호도를 분석하고 맞춤형 게임 콘텐츠를 제공합니다.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> AI 기술의 적용으로 실시간 플레이어 분석, 개인화된 게임 콘텐츠 전달, 세션 지속 시간 최적화가 가능해지고 있습니다. 카지노 관리 시스템과의 통합으로 전자 제어부, AI 프로세서, 센서 기술의 수요가 크게 증가할 것으로 예상됩니다.</p></div>
+                    <div class="card-footer"><span class="source">📌 National Law Review (Market Report)</span><a href="https://natlawreview.com/press-releases/casino-gaming-equipment-market-2026-advancing-immersive-gaming-technologies" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#D97706">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #DC2626">
-                    <div class="card-top">
-                        <span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span>
-                        <span class="date">2026-03-21</span>
-                    </div>
-                    <h3 class="card-title">게이밍 업계 혁신 발표: 생체인식·AI 기반 차세대 슬롯머신 출시</h3>
-                    <p class="card-summary">라스베이거스 카지노 기술 엑스포에서 생체인식 기술, AI 기반 개인화 플레이어 분석, 에너지 효율적 설계의 차세대 슬롯머신이 공개되었다. 이 기계들은 4K 디스플레이와 대화형 인터페이스를 특징으로 하며, 온·오프라인 게이밍을 통합하는 디지털 플랫폼도 제시되었다. 카지노 운영사들의 긍정적인 반응과 높은 관심이 나타났다.</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> 생체인식 센서, 고속 데이터 처리 반도체, 보안 기술 통합 부품에 대한 수요가 급증할 것으로 예상된다. 오므론은 이러한 고급 센서 및 제어 부품 납품을 통해 프리미엄 게이밍 기기 시장에서 점유율 확대 기회를 얻을 수 있다.</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 True Games Reviews</span>
-                        <a href="https://truegamesreviews.com/slots/revolutionary-changes-in-slot-machine-technology-set-to-transform-the-casino-industry.html" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#D97706">記事を読む →</a>
-                    </div>
+<article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2026-03-24</span></div>
+                    <h3 class="card-title">슬롯머신 시장 2025년 50억 달러에서 2030년 20억 달러 규모로 성장, 비디오 슬롯이 주도</h3>
+                    <p class="card-summary">북미가 2030년 슬롯머신 시장의 가장 큰 지역으로 80억 달러 규모를 기록할 것으로 예상됩니다. 비디오 슬롯머신이 전체 시장의 56%인 100억 달러를 차지할 것으로 예측되며, 멀티스크린 곡면 디스플레이 캐비닛 배포가 증가하고 있습니다.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 비디오 슬롯 기술이 지속적으로 고도화되면서 고해상도 디스플레이, 멀티 터치스크린 제어부, 고급 그래픽 처리 장치의 수요가 확대되고 있습니다. 캐시리스 결제 시스템과 통합되는 전자부품의 신뢰성과 보안이 핵심 경쟁 요소로 부상하고 있습니다.</p></div>
+                    <div class="card-footer"><span class="source">📌 EINPresswire (Business Research Company)</span><a href="https://www.einpresswire.com/article/901226543/slot-machines-market-2026-evolving-with-immersive-gaming-and-digital-integration" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#D97706">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #D97706">
-                    <div class="card-top">
-                        <span class="importance" style="background:#D9770618;color:#D97706">重要度: 中</span>
-                        <span class="date">2026-03-24</span>
-                    </div>
-                    <h3 class="card-title">2026년 미국 상업용 카지노 수익, 1월 기록 갱신 - 슬롯머신 수익 최고조</h3>
-                    <p class="card-summary">2026년 1월 미국 전통 카지노 게이밍 수익이 40억 3천만 달러로 역대 최고를 기록했으며, 이는 월 0.9% 성장을 나타낸다. 스포츠 베팅 수익은 16억 1천만 달러로 전년 동기 대비 소폭 하락했으나, 온라인 게이밍은 전년 대비 21.3% 성장했다.</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> 미국 카지노 수익 증가는 기존 슬롯머신 교체 및 신규 설치 수요로 이어질 것이며, 특히 고성능 기기로의 업그레이드 트렌드가 강화될 것으로 예상된다. 오므론은 북미 카지노 운영사 대상의 부품 공급 확대 계약 기회를 모색할 수 있다.</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 American Gaming Association</span>
-                        <a href="https://www.americangaming.org/resources/commercial-gaming-revenue-tracker/" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#D97706">記事を読む →</a>
-                    </div>
+<article class="card" style="border-left-color:#D97706">
+                    <div class="card-top"><span class="importance" style="background:#D9770618;color:#D97706">重要度: 中</span><span class="date">2026-02-17</span></div>
+                    <h3 class="card-title">아시아 태평양 지역 전자게이밍머신(EGM) 시장 2033년 285억 달러 규모로 성장, CAGR 6.42%</h3>
+                    <p class="card-summary">전자게이밍머신 시장이 2024년 167억 5000만 달러에서 2033년 285억 4000만 달러로 성장할 것으로 예상됩니다. 아시아 태평양 지역에서 도박 규제 완화, 가처분소득 증가, 게이밍화 요소의 통합이 주요 성장 동력입니다.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 게이밍화 기술(로열티 프로그램, 상호작용형 게임플레이 기능)의 통합으로 마이크로컨트롤러, 디스플레이 모듈, 무선 통신 부품의 수요가 증가하고 있습니다. 규제 준수와 사이버 보안이 중요한 경쟁 요소로 작용하고 있습니다.</p></div>
+                    <div class="card-footer"><span class="source">📌 Verified Market Reports</span><a href="https://www.verifiedmarketreports.com/product/electronic-gaming-machines-egm-market/" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#D97706">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #D97706">
-                    <div class="card-top">
-                        <span class="importance" style="background:#D9770618;color:#D97706">重要度: 中</span>
-                        <span class="date">2026-03-19</span>
-                    </div>
-                    <h3 class="card-title">카지노 게이밍 기기 시장의 경쟁 현황: Aristocrat, IGT, Light & Wonder의 주도권 경쟁</h3>
-                    <p class="card-summary">카지노 게이밍 기기 시장은 Aristocrat (14% 시장점유율), IGT, Light & Wonder 등 글로벌 거대 기업들이 주도하고 있다. 기업들은 고급 슬롯 혁신, AI 기반 플레이어 분석, 캐시리스 게이밍 시스템, 강화된 사이버 보안에 중점을 두고 있다. 원자재 공급자로는 미쓰비시, 스미토모, BASF, Amphenol 등이 기재되어 있다.</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> 오므론과 같은 전자부품 공급업체는 Aristocrat, IGT 등 주요 게이밍 기기 제조사와의 장기 공급 계약 체결 및 기술 파트너십 강화를 통해 시장 점유율을 확대할 수 있다. 특히 AI 기반 분석 시스템용 고정밀 센서 및 제어 부품의 차별화된 솔루션 개발이 경쟁력 강화에 필수적이다.</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 National Law Review / The Business Research Company</span>
-                        <a href="https://natlawreview.com/press-releases/casino-gaming-equipment-market-2026-advancing-immersive-gaming-technologies" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#D97706">記事を読む →</a>
-                    </div>
+<article class="card" style="border-left-color:#D97706">
+                    <div class="card-top"><span class="importance" style="background:#D9770618;color:#D97706">重要度: 中</span><span class="date">2025-05-08</span></div>
+                    <h3 class="card-title">아시아 태평양 육상 게이밍 머신 시장 향후 수년간 21% 성장 전망, 마카오에서 공급 부족 현상</h3>
+                    <p class="card-summary">국제게이밍기술(IGT)의 아시아 태평양 지역 고위직에 따르면, 마카오 카지노 운영사들이 처음으로 게이밍 머신 상품에 대해 수요가 공급을 초과한다고 언급했습니다. 플레이어들이 새로운 형태의 게이밍 경험을 추구하고 있습니다.</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 마카오 및 필리핀 등 주요 아시아 시장에서 차세대 게이밍 머신에 대한 수요가 급증하고 있습니다. 로컬라이제이션, 하이퍼 우치스크린, 실시간 영상 연동 기술 등 전자부품의 혁신적 적용이 필요해지고 있습니다.</p></div>
+                    <div class="card-footer"><span class="source">📌 GGRAsia</span><a href="https://www.ggrasia.com/asia-pacific-land-based-gaming-machine-market-might-grow-by-a-fifth-before-end-of-decade-panel" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#D97706">記事を読む →</a></div>
                 </article></div>
         </section>
 <section class="category-section " id="section-electronics">
-            <div class="cat-header">
-                <div>
-                    <div class="cat-title-row">
-                        <span class="cat-icon">🔌</span>
-                        <h2 class="cat-title" style="color:#0891B2">電子産業動向</h2>
-                    </div>
-                    <p class="cat-desc">リレー・スイッチ・コネクタ 汎用部品産業</p>
-                </div>
-                <span class="article-count">5件</span>
-            </div>
-            <div class="articles"><article class="card" style="border-left-color: #DC2626">
-                    <div class="card-top">
-                        <span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span>
-                        <span class="date">2026-03-26</span>
-                    </div>
-                    <h3 class="card-title">2026年3月：受動部品のAIインフレ加速と供給網の構造的再編が加速</h3>
-                    <p class="card-summary">2026年3月第4週、リレー・スイッチ・コネクタ市場は、AIサーバー・EV・通信インフラ向けハイエンド部品の需給ギャップが拡大している。コネクタ供給網の大幅な再編と価格改定が本格化し、村田製作所がAI向けMLCC需要をCAGR 30%に上方修正したことで、ハイエンド品のアロケーション（割当制）への完全移行が決定的となった。銀・パラジウム・銅などの原材料高騰が受動部品全体のコスト底上げを強要する新フェーズに突入している。</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> オムロンのリレー・スイッチ・コネクタ事業は、AI向けハイエンド部品の需要急増による価格上昇と供給逼迫の両面で営業機会が拡大している一方、原材料コスト上昇と競合他社の価格改定圧力に対応する急速な営業戦略転換が必須。既存顧客との長期アロケーション交渉と設計変更提案が営業の最優先課題となる。</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 基板実装.com（2026年3月26日レポート）</span>
-                        <a href="https://money.hb449.com/archives/3500" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#0891B2">記事を読む →</a>
-                    </div>
+            <div class="cat-header"><div><div class="cat-title-row"><span class="cat-icon">🔌</span><h2 class="cat-title" style="color:#0891B2">電子産業動向</h2></div><p class="cat-desc">リレー・スイッチ・コネクタ 汎用部品産業</p></div><span class="article-count">5件</span></div>
+            <div class="articles"><article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2026-03-19</span></div>
+                    <h3 class="card-title">OMRON, 클린룸 환경용 인체 감지 모듈 B5T HVC-P2 출시 (3월 19일)</h3>
+                    <p class="card-summary">오므론 전자부품이 보호복 착용 근로자 감지 전용 인체 감지 모듈 B5T HVC-P2를 발표. 반도체·검사·식품 처리 시설의 로봇과 인간 협업 안전성 강화를 위한 제품으로, 다각도 감지(수직/비스듬이/상향) 지원</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 오므론이 산업 자동화 고도화에 대응하는 센서 기술 혁신 제품 출시. 스마트팩토리 및 로봇 협업 환경 확대에 따른 안전 센싱 수요 증가 반영. 기술영업팀은 자동화 장비 업체 및 로봇 제조사 고객군 확대 기회로 활용 가능</p></div>
+                    <div class="card-footer"><span class="source">📌 Robotics Tomorrow</span><a href="https://www.roboticstomorrow.com/news/2026/03/19/omron-introduces-detection-module-for-clean-suit-environments/26291/" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#0891B2">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #DC2626">
-                    <div class="card-top">
-                        <span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span>
-                        <span class="date">2026-02-07</span>
-                    </div>
-                    <h3 class="card-title">オムロン：価格改定実施・5～50%の幅で自動化製品ポートフォリオ全体に適用（2026年2月7日確定）</h3>
-                    <p class="card-summary">オムロンは2026年2月7日確定注文より、PLC・産業用ロボット・センサ・リレーを含む自動化製品ポートフォリオ全体にわたる包括的な価格改定を実施した。改定幅は5～50%に及び、商品分野により大幅な差別化を実施している。これは原材料費上昇と労務費インフレ、およびグローバル供給チェーン再編コストの転嫁戦略を反映している。</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> オムロン自身による大幅価格改定の公式実施により、営業チームは顧客への価格転嫁の正当性が一層強化される。リレー・スイッチ領域での5～50%価格帯の差別化は、AI・EV・再生可能エネルギー向けハイエンド品への優先投資姿勢を示唆している。既存顧客との「リセイル交渉」と「設計変更提案」を組み合わせた営業活動が即座に求められる。</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 Freedom USA（電子部品供給チェーン情報）</span>
-                        <a href="https://freedomusa.com/electronics-supply-chain-price-increases-2026/" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#0891B2">記事を読む →</a>
-                    </div>
+<article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2026-03-23</span></div>
+                    <h3 class="card-title">반도체 산업 원자재 부족 심화: 텅스텐 가격 24% 급등 (3월 23일)</h3>
+                    <p class="card-summary">전쟁 영향으로 군수 수요 급증 속 텅스텐 가격이 한달 만에 24% 상승. NAND 공정 필수 소재인 텅스텐 공급 리스크 확대. 중국이 세계 공급의 대부분 장악하며 수출 규제 강화 중. 국내 상동광산 생산 텅스텐의 90%가 미국 수출</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 전자부품 산업 전 분야에 영향을 미치는 원자재 수급 불안. 반도체 공정용 핵심 소재 공급 차질 가능성으로 인한 부품 납기 리스크 증가. 기술영업팀은 고객 소싱 안정화 및 공급망 다각화 전략 강화 필요</p></div>
+                    <div class="card-footer"><span class="source">📌 아주경제 / SPA Times Korea</span><a href="https://www.sptatimeskorea.com/post/%EC%A0%9C20260323-ti-01%ED%98%B8-2026%EB%85%84-3%EC%9B%94-23%EC%9D%BC-%EA%B8%80%EB%A1%9C%EB%B2%8C-%EB%B0%98%EB%8F%84%EC%B2%B4-%EC%82%B0%EC%97%85-%EA%B4%80%EB%A0%A8-%EC%A3%BC%EC%9A%94-%EB%89%B4%EC%8A%A4-%EC%9A%94%EC%95%BD" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#0891B2">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #DC2626">
-                    <div class="card-top">
-                        <span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span>
-                        <span class="date">2026-02-28</span>
-                    </div>
-                    <h3 class="card-title">2026年2月電子部品市場：コネクタ・リレー・スイッチのリードタイム大幅短縮と部分的な価格下落</h3>
-                    <p class="card-summary">Lytica統計によると、2026年2月の電子部品市場で33カテゴリー中22カテゴリーでリードタイムが短縮し、特にコネクタが-27.58%、スイッチが-24.50%、リレー・I/Oモジュールが-15.99%の大幅短縮を記録した。一方、コネクタ-0.50%・リレー・I/Oモジュール-1.00%の部分的な価格下落も観測されている。これはAI・EV・再生可能エネルギー向けハイエンド部品への供給網の選別が進み、汎用品の需給が緩和している状況を反映している。</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> リードタイム短縮と部分的価格下落は、汎用リレー・スイッチ・コネクタ市場での競争激化を意味する。オムロン営業チームは、コスト競争力の弱い既存汎用ラインアップより、高付加価値化・IoT対応・EV充電器用高性能リレーなどの差別化商品へのポートフォリオシフトを加速させるべき。価格で勝つ時代から、技術革新による付加価値創造への営業軸足の転換が急務である。</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 Lytica（2026年2月電子部品市場統計）</span>
-                        <a href="https://lytica.com/state-of-the-electronic-components-market-february-2026/" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#0891B2">記事を読む →</a>
-                    </div>
+<article class="card" style="border-left-color:#DC2626">
+                    <div class="card-top"><span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span><span class="date">2026-02-28</span></div>
+                    <h3 class="card-title">2월 전자부품 시장: 커넥터·스위치·릴레이 납기 단축, 가격 하향 (2026년 2월)</h3>
+                    <p class="card-summary">Lytica 전자부품 지수에 따르면 2월 커넥터 납기 -27.58%, 스위치 -24.50%, 릴레이·I/O 모듈 -15.99% 단축. 반면 메모리는 8.40% 가격 상승. 성숙 제품군인 커넥터(-0.50%), 스위치(+0.50%), 릴레이(-1.00%)는 가격 안정세 유지</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 범용부품(커넥터·스위치·릴레이) 부문의 공급망 안정화 추세. AI·메모리 중심의 가격 인상과 구별되는 두 가지 속도 시장 특징. 경쟁 심화 속 범용부품의 가격 경쟁력 유지로 기술영업팀의 수주 기회 확대 가능</p></div>
+                    <div class="card-footer"><span class="source">📌 Lytica</span><a href="https://lytica.com/state-of-the-electronic-components-market-february-2026/" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#0891B2">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #DC2626">
-                    <div class="card-top">
-                        <span class="importance" style="background:#DC262618;color:#DC2626">重要度: 高</span>
-                        <span class="date">2026-03-20</span>
-                    </div>
-                    <h3 class="card-title">グローバル電子部品市場の構造的再編：2026-2035年CAGRは10%、AI・EV・再生可能エネルギーが牽引</h3>
-                    <p class="card-summary">グローバル電子部品市場は2025年の428.22億ドルから2026年468.11億ドル、2034年1,003.44億ドルへ拡大し、CAGR 10%の高成長が予測されている。成長の主要牽引力はAI・EV・再生可能エネルギーであり、アジア太平洋地域が2025年の37.79%から継続的にシェア拡大を遂行。リレー・スイッチ・コネクタなどの汎用部品からハイエンド部品への市場ポートフォリオシフトが加速している。</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> オムロン電子部品事業の中期成長戦略は、低成長の汎用品セグメントから高成長のAI・EV・再生可能エネルギー向けハイエンド部品セグメントへの段階的シフトに最適化される必要がある。特に車載用高電圧リレー、EV充電器向けパワーリレー、IoT/5G対応コネクタなどの新規領域での営業強化が経営の優先度を高めるべき。</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 Fortune Business Insights・Cervicorn Consulting</span>
-                        <a href="https://www.fortunebusinessinsights.com/electronic-components-market-109245" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#0891B2">記事を読む →</a>
-                    </div>
+<article class="card" style="border-left-color:#D97706">
+                    <div class="card-top"><span class="importance" style="background:#D9770618;color:#D97706">重要度: 中</span><span class="date">2025-09-23</span></div>
+                    <h3 class="card-title">OMRON, 2026년 4월경 전자부품 사업 분사 계획 추진</h3>
+                    <p class="card-summary">일본 오므론이 전자부품 사업부를 독립 자회사로 분사할 계획 발표. 사업 민첩성 강화 및 수익성 개선 목표. 경영 독립화를 통한 시장 경쟁력 강화 추구</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> 오므론 전자부품 부문의 경영 구조 개편. 독립 자회사화로 의사결정 빠르기 및 마케팅 유연성 증대 예상. 한국 기술영업팀 입장에서는 독립 회사의 공격적인 시장 개척 전략에 주목 필요. 장기적 파트너십 강화 기회 창출 가능</p></div>
+                    <div class="card-footer"><span class="source">📌 DigiTimes</span><a href="https://www.digitimes.com/news/a20250923PD204/omron-electronic-components-business-2026-growth.html" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#0891B2">記事を読む →</a></div>
                 </article>
-<article class="card" style="border-left-color: #D97706">
-                    <div class="card-top">
-                        <span class="importance" style="background:#D9770618;color:#D97706">重要度: 中</span>
-                        <span class="date">2025-05-30</span>
-                    </div>
-                    <h3 class="card-title">日本電子部品産業2024年度実績：出荷額4兆5,323億円で過去最高更新、AI・EV向けが成長の牽引役</h3>
-                    <p class="card-summary">日本電子情報技術産業協会（JEITA）発表により、日本電子部品産業の2024年度出荷額が4兆5,323億円に達し、前年度比3%増で過去最高を更新した。コンデンサーが1兆5,393億円（前年比6%増）で最大を占め、特にAIサーバー向けの需要が堅調。アジア（中国除く）向けが9,586億円（前年比9%増）で高成長を達成し、円安効果と輸出強化が業績を支援している。</p>
-                    <div class="insight-box">
-                        <span class="insight-icon">💡</span>
-                        <p class="insight-text"><strong>営業インサイト:</strong> 日本の電子部品業界全体が過去最高成長を遂行する中、オムロン電子部品の営業チームは、AI・EV・次世代通信インフラ向けの高付加価値製品に特化した営業体制の構築と、アジア太平洋新興市場での営業基盤強化を優先課題とすべき。汎用品の低成長環境下での競争から、差別化技術と顧客課題解決型営業への急速な転換が経営戦略を左右する重要な分岐点となる。</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="source">📌 日本経済新聞（JEITA統計・2025年5月30日報道）</span>
-                        <a href="https://www.nikkei.com/article/DGXZQOUC275L70X20C25A5000000/" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#0891B2">記事を読む →</a>
-                    </div>
+<article class="card" style="border-left-color:#D97706">
+                    <div class="card-top"><span class="importance" style="background:#D9770618;color:#D97706">重要度: 中</span><span class="date">2026-01-16</span></div>
+                    <h3 class="card-title">한국 반도체 산업: 자동차용 반도체 콘텐츠 3배 증가 전망 (2030년까지)</h3>
+                    <p class="card-summary">한국 자동차 산업의 반도체 콘텐츠가 2030년까지 3배 증가 전망. 정부의 450만대 무배출차 목표와 연계. 자동차 전장화·EV 확대로 커넥터·스위치 등 부품 수요 대폭 증가. Hyundai-Kia의 수직통합 전략으로 국내 부품사 참여 확대</p>
+                    <div class="insight-box"><span class="insight-icon">💡</span><p class="insight-text"><strong>営業インサイト:</strong> EV·자동차 전장화 시장의 급성장으로 자동차용 커넥터·릴레이 수요 급증 추세. K-세미컨덕터 벨트 정책에 따른 국내 팹 증설(2030년까지 월산 770만 웨이퍼)로 관련 부품 소수급 기회 대폭 확대. 자동차 고객 영업 전략 강화 시점</p></div>
+                    <div class="card-footer"><span class="source">📌 Mordor Intelligence / InvestKorea</span><a href="https://www.mordorintelligence.com/industry-reports/korea-semiconductor-device-market" target="_blank" rel="noopener noreferrer" class="source-link" style="color:#0891B2">記事を読む →</a></div>
                 </article></div>
-        </section>
-</main>
-
-<footer>
-    Powered by Claude AI · オムロン電子部品 Choi Hongsun · 毎週月曜日 午前6時自動更新
-</footer>
-
+        </section></main>
+<footer>Powered by Claude AI · オムロン電子部品 Choi Hongsun · 毎週月曜日 午前6時自動更新</footer>
 <script>
-function showCategory(id) {
-    document.querySelectorAll('.category-section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('section-' + id).classList.add('active');
-    document.querySelector('[data-category="' + id + '"]').classList.add('active');
+function showCategory(id){
+    document.querySelectorAll('.category-section').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.getElementById('section-'+id).classList.add('active');
+    document.querySelector('[data-category="'+id+'"]').classList.add('active');
 }
-</script>
-</body>
-</html>
+</script></body></html>
