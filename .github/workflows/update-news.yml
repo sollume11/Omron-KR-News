@@ -1,9 +1,9 @@
-name: 📰 OMRON 뉴스 자동 업데이트
+name: 📰 OMRON 뉴스 주간 자동 업데이트
 
 on:
-  # 매일 한국시간 오전 8시에 자동 실행 (UTC 23:00 = KST 08:00)
+  # 매주 월요일 한국시간 오전 6시에 자동 실행 (UTC 일요일 21:00 = KST 월요일 06:00)
   schedule:
-    - cron: '0 23 * * *'
+    - cron: '0 21 * * 0'
   
   # 수동으로도 실행 가능 (GitHub에서 버튼 클릭)
   workflow_dispatch:
@@ -28,7 +28,7 @@ jobs:
       - name: 📦 패키지 설치
         run: pip install requests
 
-      - name: 📡 뉴스 수집 및 HTML 생성
+      - name: 📡 주간 뉴스 수집 및 HTML 생성 (한국어 + 일본어)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/fetch_news.py
@@ -37,6 +37,6 @@ jobs:
         run: |
           git config user.name "OMRON News Bot"
           git config user.email "bot@omron-news.local"
-          git add docs/index.html
+          git add docs/index.html docs/index_ja.html
           git diff --staged --quiet || git commit -m "📰 뉴스 업데이트: $(TZ='Asia/Seoul' date '+%Y-%m-%d %H:%M KST')"
           git push
