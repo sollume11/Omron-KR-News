@@ -119,8 +119,7 @@ def fetch_ko(cat):
 
     for _ in range(12):
         data = call_api({"model":MODEL,"max_tokens":4000,"system":SYS_KO,
-                         "tools":[{"type":"web_search_20260209","name":"web_search","max_uses":8}],
-                         "messages":msgs})
+                         "tools":[{"type":"web_search_20260209","name":"web_search","max_uses":8,"allowed_callers":["direct"]}],
         if not data:
             return []
         sr = data.get("stop_reason","")
