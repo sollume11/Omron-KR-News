@@ -52,6 +52,9 @@ SYS_JA_BATCH = """あなたは韓国語→日本語の産業ニュース翻訳�
 def call_api(payload, timeout=120):
     """API 호출 공통 함수. 429시 자동 대기 후 재시도."""
     hdrs = {"Content-Type":"application/json","x-api-key":API_KEY,"anthropic-version":"2023-06-01"}
+    if not API_KEY:
+        print("  ❌ API_KEY가 비어있음!")
+        return None
     for attempt in range(4):
         try:
             r = requests.post(API_URL, headers=hdrs, json=payload, timeout=timeout)
@@ -60,17 +63,27 @@ def call_api(payload, timeout=120):
                 print(f"  ⏳ 속도 제한 — {wait}초 대기...")
                 time.sleep(wait)
                 continue
-            r.raise_for_status()
+            if r.status_code != 200:
+                # 상세 에러 로그
+                print(f"  ❌ HTTP {r.status_code}")
+                try:
+                    err_body = r.json()
+                    print(f"     → {err_body.get('error',{}).get('type','?')}: {err_body.get('error',{}).get('message','?')}")
+                except:
+                    print(f"     → {r.text[:200]}")
+                if attempt < 3:
+                    time.sleep(20)
+                continue
             return r.json()
         except requests.exceptions.Timeout:
             print(f"  ⏱ 타임아웃 (시도 {attempt+1}/4)")
             time.sleep(15)
-        except requests.exceptions.HTTPError as e:
-            print(f"  ❌ HTTP {e.response.status_code if e.response else '?'}")
+        except requests.exceptions.ConnectionError as e:
+            print(f"  ❌ 연결 실패: {e}")
             if attempt < 3:
                 time.sleep(20)
         except Exception as e:
-            print(f"  ❌ {e}")
+            print(f"  ❌ {type(e).__name__}: {e}")
             if attempt < 3:
                 time.sleep(15)
     return None
@@ -106,7 +119,7 @@ def fetch_ko(cat):
 
     for _ in range(12):
         data = call_api({"model":MODEL,"max_tokens":4000,"system":SYS_KO,
-                         "tools":[{"type":"web_search_20250305","name":"web_search"}],
+                         "tools":[{"type":"web_search_20260209","name":"web_search","max_uses":8}],
                          "messages":msgs})
         if not data:
             return []
@@ -327,7 +340,22 @@ def main():
     kst = timezone(timedelta(hours=9)); now = datetime.now(kst)
     t_ko = now.strftime("%Y년 %m월 %d일 %H:%M KST")
     t_ja = now.strftime("%Y年%m月%d日 %H:%M KST")
-    if not API_KEY: print("API_KEY 없음!"); sys.exit(1)
+    if not API_KEY:
+        print("❌ API_KEY 없음!")
+        sys.exit(1)
+    print(f"API Key: ...{API_KEY[-8:]}")
+    print(f"Model: {MODEL}")
+
+    # API 연결 테스트
+    print("\n[ 0단계: API 연결 테스트 ]")
+    test = call_api({"model":MODEL,"max_tokens":20,
+                     "messages":[{"role":"user","content":"Hi, reply OK"}]}, timeout=30)
+    if test:
+        print("  ✅ API 연결 정상")
+    else:
+        print("  ❌ API 연결 실패! 위 에러 메시지 확인 필요")
+        sys.exit(1)
+
     out = os.path.join(os.path.dirname(os.path.dirname(__file__)), "docs")
     os.makedirs(out, exist_ok=True)
 
@@ -361,14 +389,20 @@ def main():
             news_ja[cat["id"]] = []
 
     # 3단계: HTML 저장
+    tk = sum(len(v) for v in news_ko.values())
+    tj = sum(len(v) for v in news_ja.values())
+
+    if tk == 0:
+        print("\n⚠ 수집된 기사가 0건입니다! 기존 HTML을 보존합니다.")
+        print("  → API 키, 크레딧 잔액, 네트워크 상태를 확인하세요.")
+        sys.exit(1)
+
     print("\n[ 3단계: HTML 생성 ]")
     with open(os.path.join(out,"index.html"),"w",encoding="utf-8") as f:
         f.write(make_html(news_ko, t_ko, lang="ko", other_url="index_ja.html"))
     with open(os.path.join(out,"index_ja.html"),"w",encoding="utf-8") as f:
         f.write(make_html(news_ja, t_ja, lang="ja", other_url="index.html"))
 
-    tk = sum(len(v) for v in news_ko.values())
-    tj = sum(len(v) for v in news_ja.values())
     print(f"\n완료! 한국어 {tk}개 / 일본어 {tj}개")
     print("="*55)
 
